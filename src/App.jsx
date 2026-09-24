@@ -39,7 +39,7 @@ const leaders = [
     quote: 'Our customers build the future with us. Going the extra mile for them is how we earn that trust every single day.',
   },
   {
-    name: 'Gbenga Onimowo', role: 'Commercial Director', org: 'HUAXIN Cement Co., Ltd.',
+    name: 'Gbenga Onimowo', role: 'Commercial Director', org: 'HUAXIN Nigeria',
     bio: [
       'Team, every sale we make is a promise to a customer, and this week we celebrate the people who keep that promise. I am proud of how our commercial and customer experience teams work hand in hand. As we launch “The Extra Mile”, I charge each of you to see every customer interaction as an opportunity to exceed expectations — not just meet them.',
       'At Customer Service Week 2026 they deliver the #TheExtraMile Charge at the flag-off, rallying every commercial team to turn each customer interaction into an opportunity to exceed expectations.',
@@ -47,7 +47,7 @@ const leaders = [
     quote: 'Every sale is a promise. Going the extra mile is how we keep it.',
   },
   {
-    name: 'Olatunji Adeleye', role: 'Head of Customer Experience & Innovation', org: 'HUAXIN Cement Co., Ltd.',
+    name: 'Olatunji Adeleye', role: 'Head of Customer Experience & Innovation', org: 'HUAXIN Nigeria',
     bio: [
       'Welcome to Customer Service Week 2026! Great experiences are designed, not accidental — and they are designed by you. Over these five days we will walk in each other’s shoes, launch our CX Academy, and compete in the Customer Delight Challenge. I invite everyone to join in fully, learn from one another, and together go the extra mile for every customer.',
       'The driving force behind Customer Service Week 2026, they oversee the week’s programme, including the launch of the CX Academy, the “Walk In My Shoes” job-shadowing initiative and the Customer Delight Challenge.',
