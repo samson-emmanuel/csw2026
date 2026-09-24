@@ -6,8 +6,8 @@ const days = [
   { d: 'TUE', t: 'Appreciation Day', s: 'Secret Service Hero recognitions', dress: 'Superhero-inspired costume / accessories', img: ['tue', 'tue2'] },
   { d: 'WED', t: '“Walk In My Shoes” & CX Academy Launch', s: 'Job-shadowing & role swap', dress: 'Denim Day', img: ['wed'] },
   { d: 'THU', t: 'Customer Delight Challenge', s: 'Team role-play competition', dress: 'Team Colors / Jersey Day', img: ['thu'] },
-  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'All Black', img: ['fri'] },
-  { d: 'SAT', t: 'CSW Finale Party', s: 'CX Team finale party' },
+  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'Black and White', img: ['fri'] },
+  { d: 'SAT', t: 'CSW Finale Party', s: 'CX Team finale party · Oct 10' },
 ]
 
 const agenda = [
@@ -56,12 +56,13 @@ const leaders = [
   },
 ]
 
-// Drop last year's photos into public/gallery/ and list them here: [file, caption]
-const gallery = [
-  ['1.jpg', 'Kick-off ceremony'], ['2.jpg', 'Commitment wall'], ['3.jpg', 'Appreciation Day'],
-  ['4.jpg', 'Role-play competition'], ['5.jpg', 'Awards & celebration'], ['6.jpg', 'Finale party'],
-  ['7.jpg', 'Team bonding'], ['8.jpg', 'Photo booth moments'],
+// CSW 2025 photos: Google Photos ids per day in public/gallery.json (from the shared albums)
+const galleryDays = [
+  ['day1', 'Day 1', 'All White Day'], ['day2', 'Day 2', 'Denim on Denim'], ['day3', 'Day 3', 'Old School Day'],
+  ['day4', 'Day 4', 'Jersey Day'], ['day5', 'Day 5', 'Trad Day'],
 ]
+const gp = (id, w) => `https://lh3.googleusercontent.com/pw/${id}=w${w}`
+const PAGE = 12
 
 // Add photos as public/fun/1.webp … 6.webp (same order as `fun`); icons show until then
 const funIcons = ['😊', '❓', '🧭', '💌', '📸', '🤝']
@@ -120,6 +121,7 @@ function Nav({ route }) {
         <a href="#/week" className={route === '#/week' ? 'on' : ''}>The Road Ahead</a>
         <a href="#/fun" className={route === '#/fun' ? 'on' : ''}>Fun Zone</a>
         <a href="#/leaders" className={route === '#/leaders' ? 'on' : ''}>Leadership</a>
+        <a href="#/rewind" className={route === '#/rewind' ? 'on' : ''}>Rewind</a>
         <a href="#/gallery" className={route === '#/gallery' ? 'on' : ''}>Memory Lane</a>
       </nav>
     </header>
@@ -303,7 +305,7 @@ function Fun() {
       <section className="finale">
         <p className="eyebrow">Finale · Extra-Mile Party</p>
         <h2>Team bonding & finale party</h2>
-        <p className="big">14th October · 2:00PM</p>
+        <p className="big">10th October · 2:00PM</p>
         <p>Trivia winners take home a branded thermochromic mug. See you at the finish line.</p>
       </section>
     </>
@@ -343,17 +345,36 @@ function Leaders() {
   )
 }
 
-function Photo({ src, cap, i }) {
+function Photo({ src, cap, i, onOpen }) {
   const [err, setErr] = useState(false)
   return (
-    <figure className={`shot s${i % 5}`}>
-      {err ? <div className="ph">CSW 2025</div> : <img src={`/gallery/${src}`} alt={cap} loading="lazy" onError={() => setErr(true)} />}
+    <figure className={`shot s${i % 5}`} onClick={onOpen}>
+      {err ? <div className="ph">CSW 2025</div> : <img src={gp(src, 700)} alt={cap} loading="lazy" referrerPolicy="no-referrer" onError={() => setErr(true)} />}
       <figcaption>{cap}</figcaption>
     </figure>
   )
 }
 
 function Gallery() {
+  const [data, setData] = useState({})
+  const [day, setDay] = useState('day1')
+  const [count, setCount] = useState(PAGE)
+  const [open, setOpen] = useState(null)
+  useEffect(() => { fetch('/gallery.json').then((r) => r.json()).then(setData).catch(() => {}) }, [])
+  const label = galleryDays.find((g) => g[0] === day)
+  const all = (data[day] || []).map((id) => [id, `${label[1]} · ${label[2]}`])
+  const shown = all.slice(0, count)
+  const pick = (k) => { setDay(k); setCount(PAGE); setOpen(null) }
+  useEffect(() => {
+    if (open === null) return
+    const k = (e) => {
+      if (e.key === 'Escape') setOpen(null)
+      if (e.key === 'ArrowRight') setOpen((o) => (o + 1) % shown.length)
+      if (e.key === 'ArrowLeft') setOpen((o) => (o + shown.length - 1) % shown.length)
+    }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  }, [open, shown.length])
   return (
     <>
       <section className="hero small">
@@ -361,8 +382,64 @@ function Gallery() {
         <h1>Miles <em>Behind</em> Us</h1>
         <p className="lead">Highlights from last year’s Customer Service Week — the moments that paved the road to The Extra Mile.</p>
       </section>
-      <section className="wrap gallery">
-        {gallery.map(([f, c], i) => <Photo key={f} src={f} cap={c} i={i} />)}
+      <section className="wrap">
+        <div className="g-tabs">
+          {galleryDays.map(([k, d, t]) => (
+            <button key={k} className={day === k ? 'on' : ''} onClick={() => pick(k)}>{d} · {t}</button>
+          ))}
+        </div>
+        <div className="gallery">
+          {shown.map(([f, c], i) => <Photo key={f} src={f} cap={c} i={i} onOpen={() => setOpen(i)} />)}
+        </div>
+        {count < all.length && (
+          <div className="g-more">
+            <button onClick={() => setCount(count + PAGE)}>Load more</button>
+            <span>Showing {shown.length} of {all.length}</span>
+          </div>
+        )}
+      </section>
+      {open !== null && (
+        <div className="lightbox" onClick={() => setOpen(null)}>
+          <button className="lb-nav prev" onClick={(e) => { e.stopPropagation(); setOpen((open + shown.length - 1) % shown.length) }}>‹</button>
+          <figure onClick={(e) => e.stopPropagation()}>
+            <img src={gp(shown[open][0], 1600)} alt={shown[open][1]} referrerPolicy="no-referrer" />
+            <figcaption>{shown[open][1]} <span>{open + 1} / {shown.length}</span></figcaption>
+          </figure>
+          <button className="lb-nav next" onClick={(e) => { e.stopPropagation(); setOpen((open + 1) % shown.length) }}>›</button>
+          <button className="lb-close" onClick={() => setOpen(null)}>✕</button>
+        </div>
+      )}
+    </>
+  )
+}
+
+// Videos hosted on Google Drive (shared "Anyone with the link"); add more as [driveId, title, subtitle]
+const videos = [
+  ['1qy5xZqsusnqUD4BM67DNy-IM64Hea7RS', 'Day 2 Highlights', 'CSW 2025 · Denim on Denim'],
+]
+
+function Rewind() {
+  const [cur, setCur] = useState(0)
+  const [id, title, sub] = videos[cur]
+  return (
+    <>
+      <section className="hero small">
+        <p className="eyebrow">Rewind · CSW 2025</p>
+        <h1>Relive the <em>Moments</em></h1>
+        <p className="lead">Watch the highlights from last year’s Customer Service Week.</p>
+      </section>
+      <section className="wrap rewind">
+        <div className="player">
+          <iframe src={`https://drive.google.com/file/d/${id}/preview`} title={title} allow="autoplay; fullscreen" allowFullScreen />
+        </div>
+        <div className="v-meta"><div><p className="eyebrow">{sub}</p><h2>{title}</h2></div></div>
+        {videos.length > 1 && (
+          <div className="v-list">
+            {videos.map(([v, t, st], i) => (
+              <button key={v} className={i === cur ? 'on' : ''} onClick={() => setCur(i)}><b>{t}</b><span>{st}</span></button>
+            ))}
+          </div>
+        )}
       </section>
     </>
   )
@@ -373,7 +450,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind /> })[route] || <Home />}</main>
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>
   )
