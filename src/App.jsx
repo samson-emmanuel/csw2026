@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import { Gratitude, Admin } from './Gratitude.jsx'
 
 const days = [
   { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Naija Day', img: ['mon'] },
@@ -121,6 +122,7 @@ function Nav({ route }) {
         <a href="#/week" className={route === '#/week' ? 'on' : ''}>The Road Ahead</a>
         <a href="#/fun" className={route === '#/fun' ? 'on' : ''}>Fun Zone</a>
         <a href="#/leaders" className={route === '#/leaders' ? 'on' : ''}>Leadership</a>
+        <a href="#/gratitude" className={route === '#/gratitude' ? 'on' : ''}>Gratitude Wall</a>
         <a href="#/rewind" className={route === '#/rewind' ? 'on' : ''}>Rewind</a>
         <a href="#/gallery" className={route === '#/gallery' ? 'on' : ''}>Memory Lane</a>
       </nav>
@@ -450,7 +452,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin /> })[route] || <Home />}</main>
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>
   )
