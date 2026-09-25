@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { Gratitude, Admin } from './Gratitude.jsx'
+import { Snapshots } from './Snapshots.jsx'
 
 const days = [
-  { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Naija Day', img: ['mon'] },
-  { d: 'TUE', t: 'Appreciation Day', s: 'Secret Service Hero recognitions', dress: 'Superhero-inspired costume / accessories', img: ['tue', 'tue2'] },
-  { d: 'WED', t: '“Walk In My Shoes” & CX Academy Launch', s: 'Job-shadowing & role swap', dress: 'Denim Day', img: ['wed'] },
-  { d: 'THU', t: 'Customer Delight Challenge', s: 'Team role-play competition', dress: 'Team Colors / Jersey Day', img: ['thu'] },
-  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'Black and White', img: ['fri'] },
+  { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Black and White', img: ['mon-v2'] },
+  { d: 'TUE', t: 'Appreciation Day', s: 'Secret Service Hero recognitions', dress: 'Superhero-inspired costume / accessories', img: ['tue-v2'] },
+  { d: 'WED', t: '“Walk In My Shoes” & CX Academy Launch', s: 'Job-shadowing & role swap', dress: 'Denim Day', img: ['wed-v2'] },
+  { d: 'THU', t: 'Customer Delight Challenge', s: 'Team role-play competition', dress: 'Team Colors / Jersey Day', img: ['thu-v2'] },
+  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'All White', img: ['fri-v2'] },
   { d: 'SAT', t: 'CSW Finale Party', s: 'CX Team finale party · Oct 10' },
 ]
 
@@ -59,8 +60,8 @@ const leaders = [
 
 // CSW 2025 photos: Google Photos ids per day in public/gallery.json (from the shared albums)
 const galleryDays = [
-  ['day1', 'Day 1', 'All White Day'], ['day2', 'Day 2', 'Denim on Denim'], ['day3', 'Day 3', 'Old School Day'],
-  ['day4', 'Day 4', 'Jersey Day'], ['day5', 'Day 5', 'Trad Day'],
+  ['day1', 'Day 1', 'Corporate Day'], ['day2', 'Day 2', 'Denim on Denim'], ['day3', 'Day 3', 'Old School Day'],
+  ['day4', 'Day 4', 'Jersey Day'], ['day5', 'Day 5', 'Trad Day'], ['finale', 'Grand Finale', 'All White Party'],
 ]
 const gp = (id, w) => `https://lh3.googleusercontent.com/pw/${id}=w${w}`
 const PAGE = 12
@@ -124,6 +125,7 @@ function Nav({ route }) {
         <a href="#/leaders" className={route === '#/leaders' ? 'on' : ''}>Leadership</a>
         <a href="#/gratitude" className={route === '#/gratitude' ? 'on' : ''}>Gratitude Wall</a>
         <a href="#/rewind" className={route === '#/rewind' ? 'on' : ''}>Rewind</a>
+        <a href="#/snapshots" className={route === '#/snapshots' ? 'on' : ''}>Snapshots</a>
         <a href="#/gallery" className={route === '#/gallery' ? 'on' : ''}>Memory Lane</a>
       </nav>
     </header>
@@ -256,7 +258,7 @@ function Week() {
               <h3>{x.d}</h3>
               <h4>{x.t}</h4>
               <p>{x.s}</p>
-              {x.img && <div className="dress">{x.img.map((m) => <img key={m} src={`/dress/${m}.png`} alt={x.dress} loading="lazy" />)}</div>}
+              {x.img && <div className="dress">{x.img.map((m) => <img key={m} src={`/dress/${m}.webp`} alt={x.dress} loading="lazy" />)}</div>}
               {x.dress && <small>Dress code · {x.dress}</small>}
             </article>
           ))}
@@ -417,6 +419,7 @@ function Gallery() {
 
 // Videos hosted on Google Drive (shared "Anyone with the link"); add more as [driveId, title, subtitle]
 const videos = [
+  ['1-Ntm4s3ALGDT-fSkY7XrImI53O7WXhHL', 'CSW 2025 Recap', 'The full week · Day 1 to the Grand Finale'],
   ['1qy5xZqsusnqUD4BM67DNy-IM64Hea7RS', 'Day 2 Highlights', 'CSW 2025 · Denim on Denim'],
 ]
 
@@ -452,7 +455,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots /> })[route] || <Home />}</main>
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>
   )

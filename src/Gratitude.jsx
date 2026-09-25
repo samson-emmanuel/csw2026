@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const env = import.meta.env
-const db = env.VITE_SUPABASE_URL ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY) : null
+export const db = env.VITE_SUPABASE_URL ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY) : null
 const COLORS = ['yellow', 'pink', 'blue', 'green']
 
-const store = {
+export const store = {
   get: (k) => { try { return JSON.parse(sessionStorage.getItem(k)) } catch { return null } },
   set: (k, v) => { try { v ? sessionStorage.setItem(k, JSON.stringify(v)) : sessionStorage.removeItem(k) } catch { /* private mode */ } },
 }
@@ -167,7 +167,14 @@ export function Admin() {
     if (error) { store.set('gw-admin', null); setCode(null); setMsg('Wrong admin passcode.'); return }
     setStaff(data)
   }, [])
-  useEffect(() => { if (db && code) loadStaff(code) }, [code, loadStaff])
+  const [photos, setPhotos] = useState([])
+  const loadPhotos = useCallback(async (c) => {
+    const { data } = await db.rpc('admin_list_photos', { p_admin: c })
+    setPhotos(data || [])
+  }, [])
+  useEffect(() => { if (db && code) { loadStaff(code); loadPhotos(code) } }, [code, loadStaff, loadPhotos])
+  const setPhoto = async (id, ok) => { await db.rpc('admin_set_photo', { p_admin: code, p_id: id, p_approved: ok }); loadPhotos(code) }
+  const delPhoto = async (id) => { if (!confirm('Remove this photo from the site? (The file stays in your Drive.)')) return; await db.rpc('admin_delete_photo', { p_admin: code, p_id: id }); loadPhotos(code) }
   if (!db) return <Setup />
 
   const unlock = (e) => { e.preventDefault(); const c = new FormData(e.target).get('admin'); store.set('gw-admin', c); setMsg(''); setCode(c) }
@@ -209,6 +216,27 @@ export function Admin() {
         <div className="admin-msg">
           <b>{msg.name}</b> · {msg.email}<br />
           Passcode: <code className="pass">{msg.pass}</code>
+          {(() => {
+            const sub = encodeURIComponent('Your CSW 2026 Gratitude Wall passcode')
+            const body = encodeURIComponent(`Hi ${msg.name},
+
+You can now post appreciation notes on the CSW 2026 Gratitude Wall.
+
+Email: ${msg.email}
+Passcode: ${msg.pass}
+
+Sign in here: ${window.location.origin}/#/gratitude
+
+Thank you for going the extra mile!`)
+            const to = encodeURIComponent(msg.email)
+            return (
+              <>
+                <a className="mail-btn" target="_blank" rel="noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${sub}&body=${body}`}>✉ Gmail</a>
+                <a className="mail-btn alt" target="_blank" rel="noreferrer" href={`https://outlook.office.com/mail/deeplink/compose?to=${to}&subject=${sub}&body=${body}`}>Outlook</a>
+                <a className="mail-btn alt" href={`mailto:${msg.email}?subject=${sub}&body=${body}`}>Email app</a>
+              </>
+            )
+          })()}
           <button className={copied ? 'copied' : ''} onClick={() => copy(`Hi ${msg.name}, your CSW Gratitude Wall login:
 Email: ${msg.email}
 Passcode: ${msg.pass}
@@ -223,6 +251,19 @@ ${window.location.origin}/#/gratitude`)}>{copied ? '✓ Copied' : 'Copy message'
             <button onClick={() => add(s.name, s.email)} disabled={busy}>Reset passcode</button>
             <button onClick={() => remove(s)}>Remove</button>
           </div>
+        ))}
+      </div>
+      <h3 className="admin-h">Photos ({photos.filter((p) => !p.approved).length} awaiting approval)</h3>
+      <div className="admin-photos">
+        {photos.map((p) => (
+          <figure key={p.id} className={p.approved ? '' : 'pending'}>
+            <img src={`https://drive.google.com/thumbnail?id=${p.drive_id}&sz=w400`} alt="" loading="lazy" referrerPolicy="no-referrer" />
+            <figcaption><b>{p.day}</b> · {p.uploader}{p.caption && <> · {p.caption}</>}</figcaption>
+            <div>
+              <button onClick={() => setPhoto(p.id, !p.approved)}>{p.approved ? 'Unapprove' : 'Approve'}</button>
+              <button onClick={() => delPhoto(p.id)}>Delete</button>
+            </div>
+          </figure>
         ))}
       </div>
       <h3 className="admin-h">Notes ({notes.length})</h3>
