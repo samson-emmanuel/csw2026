@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { PledgeSign } from './Commitment.jsx'
 
 const env = import.meta.env
 export const db = env.VITE_SUPABASE_URL ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY) : null
@@ -167,6 +168,14 @@ export function Admin() {
     if (error) { store.set('gw-admin', null); setCode(null); setMsg('Wrong admin passcode.'); return }
     setStaff(data)
   }, [])
+  const [pledges, setPledges] = useState([])
+  const loadPledges = useCallback(async (c) => {
+    const { data } = await db.rpc('admin_list_pledges', { p_admin: c })
+    setPledges((data || []).map((p, i) => ({ ...p, mile: i + 1 })))
+  }, [])
+  useEffect(() => { if (db && code) loadPledges(code) }, [code, loadPledges])
+  const setPledge = async (id, ok) => { await db.rpc('admin_set_pledge', { p_admin: code, p_id: id, p_approved: ok }); loadPledges(code) }
+  const delPledge = async (id) => { if (!confirm('Delete this pledge?')) return; await db.rpc('admin_delete_pledge', { p_admin: code, p_id: id }); loadPledges(code) }
   const [photos, setPhotos] = useState([])
   const loadPhotos = useCallback(async (c) => {
     const { data } = await db.rpc('admin_list_photos', { p_admin: c })
@@ -266,6 +275,8 @@ ${window.location.origin}/#/gratitude`)}>{copied ? '✓ Copied' : 'Copy message'
           </figure>
         ))}
       </div>
+      <h3 className="admin-h">Pledges ({pledges.filter((p) => !p.approved).length} awaiting approval)</h3>
+      <div className="signs">{pledges.map((p) => <PledgeSign key={p.id} p={p} onApprove={setPledge} onDelete={delPledge} />)}</div>
       <h3 className="admin-h">Notes ({notes.length})</h3>
       <div className="wall">{notes.map((n) => <Note key={n.id} n={n} onDelete={delNote} />)}</div>
     </section>

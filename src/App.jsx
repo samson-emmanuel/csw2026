@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import { Gratitude, Admin } from './Gratitude.jsx'
 import { Snapshots } from './Snapshots.jsx'
+import { Commitment } from './Commitment.jsx'
 
 const days = [
   { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Black and White', img: ['mon-v2'] },
@@ -123,6 +124,7 @@ function Nav({ route }) {
         <a href="#/week" className={route === '#/week' ? 'on' : ''}>The Road Ahead</a>
         <a href="#/fun" className={route === '#/fun' ? 'on' : ''}>Fun Zone</a>
         <a href="#/leaders" className={route === '#/leaders' ? 'on' : ''}>Leadership</a>
+        <a href="#/commitment" className={route === '#/commitment' ? 'on' : ''}>Commitment Wall</a>
         <a href="#/gratitude" className={route === '#/gratitude' ? 'on' : ''}>Gratitude Wall</a>
         <a href="#/rewind" className={route === '#/rewind' ? 'on' : ''}>Rewind</a>
         <a href="#/snapshots" className={route === '#/snapshots' ? 'on' : ''}>Snapshots</a>
@@ -300,9 +302,11 @@ function Fun() {
         <p className="eyebrow">Fun & Engagement</p>
         <h2>Throughout the week</h2>
         <div className="fun">
-          {fun.map(([t, s], i) => (
-            <article key={t}><FunImg i={i} t={t} /><b>0{i + 1}</b><h4>{t}</h4><p>{s}</p></article>
-          ))}
+          {fun.map(([t, s], i) => {
+            const link = { 'Gratitude Wall': '#/gratitude', 'Commitment Wall': '#/commitment' }[t]
+            const body = <><FunImg i={i} t={t} /><b>0{i + 1}</b><h4>{t}</h4><p>{s}</p>{link && <span className="fun-go">Open {t} →</span>}</>
+            return link ? <a key={t} href={link} className="fun-card">{body}</a> : <article key={t}>{body}</article>
+          })}
         </div>
       </section>
 
@@ -455,7 +459,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment /> })[route] || <Home />}</main>
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>
   )

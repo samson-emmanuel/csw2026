@@ -405,3 +405,42 @@ footer b { color: #fff; }
 }
 .dress { height: 220px; padding: 0; overflow: hidden; background: #eee; }
 .dress img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* Commitment Wall — highway-sign pledges */
+.pledge-count { margin: 18px 0 26px; position: relative; font-size: 14px; color: #c9c9cf; }
+.pledge-count b { font-size: 26px; font-weight: 900; color: #fff; margin-right: 4px; }
+.signs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 34px 24px; }
+.sign { display: flex; flex-direction: column; align-items: center; animation: rise .5s both; }
+.sign-face { position: relative; width: 100%; background: #0f6b3c; color: #fff; border-radius: 14px; padding: 26px 22px 22px; text-align: center;
+  box-shadow: inset 0 0 0 4px #0f6b3c, inset 0 0 0 7px #fff, 0 18px 30px -12px #0f6b3c99; transition: transform .3s; }
+.sign:hover .sign-face { transform: translateY(-4px) rotate(-.6deg); }
+.sign-mile { display: inline-block; font-size: 11px; font-weight: 900; letter-spacing: 2px; padding: 4px 12px; border-radius: 6px; background: #f5b400; color: #111; margin-bottom: 12px; }
+.sign-face h4 { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; line-height: 1.15; }
+.sign-face p { margin-top: 10px; font-size: 14px; line-height: 1.55; color: #e7f5ec; font-weight: 500; }
+.sign-face p::before { content: '“'; } .sign-face p::after { content: '”'; }
+.sign-posts { width: 56%; height: 34px; border-left: 7px solid #9aa3ad; border-right: 7px solid #9aa3ad; }
+.sign .note-del { margin-top: 8px; }
+.pledge-card { width: min(460px, 100%); display: grid; gap: 14px; animation: rise .3s both; }
+.pledge-card .sign-face { padding: 30px 24px 18px; }
+.pledge-card .pledge-lead { margin-top: 12px; }
+.pledge-card .pledge-lead::before, .pledge-card .pledge-lead::after { content: none; }
+.pledge-card textarea { width: 100%; margin-top: 8px; background: #ffffff14; border: 1px dashed #ffffff66; border-radius: 10px; padding: 12px; color: #fff; font: inherit; font-size: 16px; font-weight: 600; text-align: center; resize: none; outline: none; }
+.pledge-card textarea::placeholder { color: #ffffff80; }
+.pledge-card small { display: block; margin-top: 6px; font-size: 11px; color: #ffffffa6; }
+.pledge-sugs { background: #fff; border-radius: 16px; padding: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+.pledge-sugs span { width: 100%; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #999; }
+.pledge-sugs button { font: inherit; font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 20px; border: 1px solid #e2dfda; background: #faf9f7; cursor: pointer; text-align: left; }
+.pledge-sugs button:hover { border-color: #0f6b3c; color: #0f6b3c; }
+.pledge-card > .btn { border: 0; cursor: pointer; font: inherit; font-weight: 700; }
+@media (max-width: 560px) { .signs { grid-template-columns: 1fr; } .gw-modal:has(.pledge-card) { align-items: start; overflow-y: auto; } }
+
+.sign.pending .sign-face { background: #6b6b6a; box-shadow: inset 0 0 0 4px #6b6b6a, inset 0 0 0 7px #f5b400, 0 18px 30px -12px #0005; }
+.sign-admin { display: flex; gap: 8px; margin-top: 8px; }
+.sign-admin button { font: inherit; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+.sign-admin button.go { background: #1f9d55; border-color: #1f9d55; color: #fff; }
+.pledge-wait { padding-top: 24px; padding-bottom: 0; }
+.pledge-wait div { padding: 16px 20px; border-radius: 14px; background: #fff7d6; border: 1px solid #f5b400; font-size: 14px; line-height: 1.6; }
+.fun .fun-card { display: block; background: #fff; padding: 32px; border-radius: 18px; position: relative; overflow: hidden; transition: .3s; cursor: pointer; }
+.fun .fun-card:hover { background: var(--ink); color: #fff; }
+.fun-go { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--red); transition: .3s; }
+.fun-card:hover .fun-go { transform: translateX(4px); }
