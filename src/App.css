@@ -444,3 +444,6 @@ footer b { color: #fff; }
 .fun .fun-card:hover { background: var(--ink); color: #fff; }
 .fun-go { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--red); transition: .3s; }
 .fun-card:hover .fun-go { transform: translateX(4px); }
+.speech { white-space: pre-line; }
+.speech { min-height: 150px; }
+.bio blockquote + blockquote { margin-top: 12px; }

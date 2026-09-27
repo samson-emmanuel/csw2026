@@ -9,8 +9,8 @@ const days = [
   { d: 'TUE', t: 'Appreciation Day', s: 'Secret Service Hero recognitions', dress: 'Superhero-inspired costume / accessories', img: ['tue-v2'] },
   { d: 'WED', t: '“Walk In My Shoes” & CX Academy Launch', s: 'Job-shadowing & role swap', dress: 'Denim Day', img: ['wed-v2'] },
   { d: 'THU', t: 'Customer Delight Challenge', s: 'Team role-play competition', dress: 'Team Colors / Jersey Day', img: ['thu-v2'] },
-  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'All White', img: ['fri-v2'] },
-  { d: 'SAT', t: 'CSW Finale Party', s: 'CX Team finale party · Oct 10' },
+  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'Owambe Day · Native Attire', img: ['fri-v2'] },
+  { d: 'SAT', t: 'CSW Finale Party', s: 'Bonus celebration after the working week — CX Team finale party' },
 ]
 
 const agenda = [
@@ -34,28 +34,26 @@ const fun = [
 
 const leaders = [
   {
-    name: 'Lolu Alade-Akinyemi', role: 'GMD/CEO', org: 'HUAXIN Cement Co., Ltd.',
+    name: 'Lolu Alade-Akinyemi', role: 'GMD/CEO', org: 'HBM Nigeria',
     bio: [
-      'Dear colleagues, this Customer Service Week I want to thank every one of you. Our customers build the future with us, and it is your care, patience and determination that earns their trust every day. This year’s theme, “The Extra Mile”, is a challenge I am asking all of us to take personally — from the plant floor to the front desk, let us meet every customer challenge with creativity and teamwork.',
-      'For Customer Service Week 2026, the GMD/CEO champions “The Extra Mile” — a call for every team, from the plant floor to the front desk, to meet customer challenges with determination, creativity and teamwork.',
+      '',
     ],
-    quote: 'Our customers build the future with us. Going the extra mile for them is how we earn that trust every single day.',
+    quote: [],
   },
   {
-    name: 'Gbenga Onimowo', role: 'Commercial Director', org: 'HUAXIN Nigeria',
+    name: 'Gbenga Onimowo', role: 'Commercial Director', org: 'HBM Nigeria',
     bio: [
-      'Team, every sale we make is a promise to a customer, and this week we celebrate the people who keep that promise. I am proud of how our commercial and customer experience teams work hand in hand. As we launch “The Extra Mile”, I charge each of you to see every customer interaction as an opportunity to exceed expectations — not just meet them.',
-      'At Customer Service Week 2026 they deliver the #TheExtraMile Charge at the flag-off, rallying every commercial team to turn each customer interaction into an opportunity to exceed expectations.',
+      '',
     ],
-    quote: 'Every sale is a promise. Going the extra mile is how we keep it.',
+    quote: [],
   },
   {
-    name: 'Olatunji Adeleye', role: 'Head of Customer Experience & Innovation', org: 'HUAXIN Nigeria',
+    name: 'Olatunji Adeleye', role: 'Head of Customer Experience & Innovation', org: 'HBM Nigeria',
     bio: [
-      'Welcome to Customer Service Week 2026! Great experiences are designed, not accidental — and they are designed by you. Over these five days we will walk in each other’s shoes, launch our CX Academy, and compete in the Customer Delight Challenge. I invite everyone to join in fully, learn from one another, and together go the extra mile for every customer.',
+      'Welcome to Customer Service Week 2026. I’ve watched this team, all year, quietly go the extra mile: fixing problems before customers even notice them, turning frustration into trust, and building things nobody asked for but everyone now relies on. That is not an accident. It is a habit this team has built together, and this week we celebrate it. As you know, great experiences are designed, not accidental, and they are designed, and better still implemented, by you. Over the next six days we will walk in each other’s shoes, launch our CX Academy, and go head to head in the Customer Delight Challenge. I am asking every one of you to show up fully, not just in dress code, but in spirit, because the best version of this week is the one we build together, and have fun while at it.',
       'The driving force behind Customer Service Week 2026, they oversee the week’s programme, including the launch of the CX Academy, the “Walk In My Shoes” job-shadowing initiative and the Customer Delight Challenge.',
     ],
-    quote: 'Great experiences are designed, not accidental. This week we celebrate the people who make them happen.',
+    quote: ['Great experiences are designed, not accidental. This week we celebrate the people who make them happen.', 'This team doesn’t just meet the moment, it goes past it. This week, we celebrate that, and we do it again.'],
   },
 ]
 
@@ -256,7 +254,7 @@ function Week() {
         <div className="days">
           {days.map((x, i) => (
             <article key={x.d} className="day">
-              <span className="mile">MILE {String(i + 1).padStart(2, '0')}</span>
+              <span className="mile">{i < 5 ? `MILE ${String(i + 1).padStart(2, '0')}` : '🏁 THE FINISH LINE · OCT 10'}</span>
               <h3>{x.d}</h3>
               <h4>{x.t}</h4>
               <p>{x.s}</p>
@@ -344,7 +342,7 @@ function Leaders() {
               <h2>{l.name}</h2>
               <p className="speech">{l.bio[0]}</p>
               {l.bio.slice(1).map((p) => <p key={p.slice(0, 20)}>{p}</p>)}
-              <blockquote>“{l.quote}”</blockquote>
+              {[].concat(l.quote).map((q) => <blockquote key={q}>“{q}”</blockquote>)}
             </div>
           </article>
         ))}
