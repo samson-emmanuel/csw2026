@@ -9,7 +9,7 @@ const days = [
   { d: 'TUE', t: 'Appreciation Day', s: 'Secret Service Hero recognitions', dress: 'Superhero-inspired costume / accessories', img: ['tue-v2'] },
   { d: 'WED', t: '“Walk In My Shoes” & CX Academy Launch', s: 'Job-shadowing & role swap', dress: 'Denim Day', img: ['wed-v2'] },
   { d: 'THU', t: 'Customer Delight Challenge', s: 'Team role-play competition', dress: 'Team Colors / Jersey Day', img: ['thu-v2'] },
-  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'Owambe Day · Native Attire', img: ['fri-v2'] },
+  { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'Owambe Day · Native Attire', img: ['fri-v3'] },
   { d: 'SAT', t: 'CSW Finale Party', s: 'Bonus celebration after the working week — CX Team finale party' },
 ]
 
