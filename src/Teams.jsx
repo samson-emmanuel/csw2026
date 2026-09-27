@@ -48,12 +48,11 @@ export function Teams() {
               </button>
               <div className="team-depts">{depts.map(([d, n]) => <span key={d}>{d} · {n}</span>)}</div>
               <div className="team-leads">
-                <span className="team-leads-h">Led by</span>
+                <span className="team-leads-h">Led By</span>
                 {members.filter((m) => m.role).map((m) => (
                   <div key={m.name} className="co-lead">
                     <span className="team-av">{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>
                     <b>{m.name}</b>
-                    <em>Team Lead</em>
                   </div>
                 ))}
               </div>
