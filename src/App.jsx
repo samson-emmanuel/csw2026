@@ -48,10 +48,9 @@ const leaders = [
     quote: [],
   },
   {
-    name: 'Olatunji Adeleye', role: 'Head of Customer Experience & Innovation', org: 'HBM Nigeria',
+    name: 'Olatunji Adeleye', role: 'Head of Customer Experience and Digital Innovation', org: 'HBM Nigeria',
     bio: [
       'Welcome to Customer Service Week 2026. I’ve watched this team, all year, quietly go the extra mile: fixing problems before customers even notice them, turning frustration into trust, and building things nobody asked for but everyone now relies on. That is not an accident. It is a habit this team has built together, and this week we celebrate it. As you know, great experiences are designed, not accidental, and they are designed, and better still implemented, by you. Over the next six days we will walk in each other’s shoes, launch our CX Academy, and go head to head in the Customer Delight Challenge. I am asking every one of you to show up fully, not just in dress code, but in spirit, because the best version of this week is the one we build together, and have fun while at it.',
-      'The driving force behind Customer Service Week 2026, they oversee the week’s programme, including the launch of the CX Academy, the “Walk In My Shoes” job-shadowing initiative and the Customer Delight Challenge.',
     ],
     quote: ['Great experiences are designed, not accidental. This week we celebrate the people who make them happen.', 'This team doesn’t just meet the moment, it goes past it. This week, we celebrate that, and we do it again.'],
   },
