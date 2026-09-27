@@ -10,7 +10,7 @@ const days = [
   { d: 'WED', t: '“Walk In My Shoes” & CX Academy Launch', s: 'Job-shadowing & role swap', dress: 'Denim Day', img: ['wed-v2'] },
   { d: 'THU', t: 'Customer Delight Challenge', s: 'Team role-play competition', dress: 'Team Colors / Jersey Day', img: ['thu-v2'] },
   { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'Owambe Day · Native Attire', img: ['fri-v3'] },
-  { d: 'SAT', t: 'CSW Finale Party', s: 'Bonus celebration after the working week — CX Team finale party' },
+  { d: 'SAT', t: 'CSW Finale Party', s: 'CX Team finale party' },
 ]
 
 const agenda = [
@@ -77,7 +77,7 @@ function FunImg({ i, t }) {
 }
 
 const tiles = [
-  ['#/week', 'The Road Ahead', 'The five-day journey, daily themes, dress codes and the flag-off agenda.', 'Oct 5 – 10', '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'],
+  ['#/week', 'The Road Ahead', 'The six-day journey, daily themes, dress codes and the flag-off agenda.', 'Oct 5 – 10', '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'],
   ['#/fun', 'Fun Zone', 'Trivia, treasure hunt, gratitude wall and the Extra-Mile finale party.', '6 activities', '<path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8l5.5-.8z"/>'],
   ['#/leaders', 'Leadership', 'Messages from the leaders championing customer excellence.', '3 leaders', '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'],
   ['#/gallery', 'Memory Lane', 'Moments and highlights from Customer Service Week 2025.', 'CSW 2025', '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/>'],
@@ -139,7 +139,7 @@ function Home() {
         <img className="hero-logo" src="/logo.png" alt="The Extra Mile" />
         <p className="eyebrow">Customer Service Week · Oct 5 – 9, 2026</p>
         <h1>The <em>Extra</em> Mile</h1>
-        <p className="lead">Five days. Five milestones. One commitment — to meet every customer challenge with determination, creativity and teamwork.</p>
+        <p className="lead">Six days. Six milestones. One commitment — to meet every customer challenge with determination, creativity and teamwork.</p>
         <Countdown />
         <a className="btn" href="#/week">Explore the week</a>
       </section>
@@ -150,7 +150,7 @@ function Home() {
           <p className="eyebrow">Objective</p>
           <h2>Celebrating the people behind every great experience</h2>
         </div>
-        <p>Customer Service Week (CSW) is a global celebration held annually during the first full week of October to recognize the vital role of customer service. In 2026, it runs from <b>Monday, October 5</b> to <b>Friday, October 9</b>. This year’s theme motivates teams to approach customer challenges with determination, creativity and teamwork to deliver impactful solutions.</p>
+        <p>Customer Service Week (CSW) is a global celebration held annually during the first full week of October to recognize the vital role of customer service. In 2026, it runs from <b>Monday, October 5</b> to <b>Saturday, October 10</b>. This year’s theme motivates teams to approach customer challenges with determination, creativity and teamwork to deliver impactful solutions.</p>
       </section>
 
       <section className="wrap explore">
@@ -248,12 +248,12 @@ function Week() {
   return (
     <>
       <section className="wrap">
-        <p className="eyebrow">Five Days, Five Milestones</p>
+        <p className="eyebrow">Six Days, Six Milestones</p>
         <h2>The journey</h2>
         <div className="days">
           {days.map((x, i) => (
             <article key={x.d} className="day">
-              <span className="mile">{i < 5 ? `MILE ${String(i + 1).padStart(2, '0')}` : '🏁 THE FINISH LINE · OCT 10'}</span>
+              <span className="mile">MILE {String(i + 1).padStart(2, '0')}</span>
               <h3>{x.d}</h3>
               <h4>{x.t}</h4>
               <p>{x.s}</p>
