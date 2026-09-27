@@ -490,8 +490,12 @@ footer b { color: #fff; }
 }
 
 .team:not(.open) .team-list { display: none; }
-.team-leads { padding: 0 26px 16px; font-size: 14px; font-weight: 700; }
-.team-leads span { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-right: 4px; }
+.team-leads { padding: 0 26px 16px; display: grid; gap: 8px; }
+.team-leads-h { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #999; }
+.co-lead { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--c) 8%, #fff); }
+.co-lead .team-av { background: var(--c); color: #fff; }
+.co-lead b { flex: 1; font-size: 14px; }
+.co-lead em { font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 4px 9px; border-radius: 12px; background: var(--c); color: #fff; white-space: nowrap; }
 .team-toggle { display: flex; justify-content: center; align-items: center; gap: 10px; width: calc(100% - 52px); margin: 0 26px 22px; padding: 13px; border-radius: 14px;
   border: 1.5px dashed var(--c); background: color-mix(in srgb, var(--c) 6%, #fff); color: var(--c); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; transition: .25s; }
 .team-toggle:hover { background: var(--c); color: #fff; border-style: solid; }

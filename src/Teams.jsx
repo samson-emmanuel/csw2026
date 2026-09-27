@@ -48,7 +48,14 @@ export function Teams() {
               </button>
               <div className="team-depts">{depts.map(([d, n]) => <span key={d}>{d} · {n}</span>)}</div>
               <div className="team-leads">
-                <span>Led by</span> {members.filter((m) => m.role === 'Team Lead').map((m) => m.name).join(' & ')}
+                <span className="team-leads-h">Led by</span>
+                {members.filter((m) => m.role).map((m) => (
+                  <div key={m.name} className="co-lead">
+                    <span className="team-av">{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>
+                    <b>{m.name}</b>
+                    <em>{m.role === 'CRM' ? 'CRM · Co-lead' : m.role}</em>
+                  </div>
+                ))}
               </div>
               <button className="team-toggle" onClick={() => setOpenT(openT === t.n ? null : t.n)} aria-expanded={open}>
                 {open ? 'Hide members' : `View all ${t.members.length} members`}<i>▾</i>
@@ -57,7 +64,7 @@ export function Teams() {
                 {members.map((m) => (
                   <li key={m.name} className={`${m.role ? 'lead' : ''} ${hit(m) ? 'me' : ''}`}>
                     <span className="team-av">{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>
-                    <span className="team-name">{m.name}{m.role && <em>{m.role}</em>}</span>
+                    <span className="team-name">{m.name}{m.role && <em>{m.role === 'CRM' ? 'CRM · Co-lead' : m.role}</em>}</span>
                     <span className="team-dept">{m.dept}</span>
                   </li>
                 ))}
