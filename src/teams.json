@@ -1,0 +1,286 @@
+[
+ {
+  "n": 1,
+  "name": "Trailblazers",
+  "members": [
+   {
+    "name": "Sommidah Ayoola",
+    "dept": "CXOps",
+    "role": "Team Lead"
+   },
+   {
+    "name": "Jibrin Mohammed",
+    "dept": "CXOps",
+    "role": "CRM"
+   },
+   {
+    "name": "Scholastica Udoh",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Simon Timnan",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Olakunle Ayeni",
+    "dept": "RAI",
+    "role": ""
+   },
+   {
+    "name": "Uyime-Abasi Godwin",
+    "dept": "RAI",
+    "role": ""
+   },
+   {
+    "name": "Rockyfeller Irikefe",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Perpetual Okolie",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Oyin Olaoye",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Hammed Abubakri",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Kelvin Imhensi",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Oluwatosin Adebowale",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Omaile Eche",
+    "dept": "LOGIC",
+    "role": ""
+   }
+  ]
+ },
+ {
+  "n": 2,
+  "name": "Pathfinders",
+  "members": [
+   {
+    "name": "Oni Opeyemi",
+    "dept": "RAI",
+    "role": "Team Lead"
+   },
+   {
+    "name": "Shefinat Shin-Aba",
+    "dept": "CXOps",
+    "role": "CRM"
+   },
+   {
+    "name": "Joy Omoyeme Iribhogbe",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Adebola Momodu",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Emmanuel Nkiruka",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Ademuyiwa Ayodeji",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Ayomiposi Olowo",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Veronica Aladi",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Adedayo Adeyemo",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Fortune Adebisi",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Gbolade Sennuga",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Grace Oboh",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Keziah Gabriel",
+    "dept": "LOGIC",
+    "role": ""
+   }
+  ]
+ },
+ {
+  "n": 3,
+  "name": "Roadrunners",
+  "members": [
+   {
+    "name": "Zinat Bisiriyu",
+    "dept": "OFT",
+    "role": "Team Lead"
+   },
+   {
+    "name": "Promise Ifeoma Anaele",
+    "dept": "LOGIC",
+    "role": "Team Lead"
+   },
+   {
+    "name": "Ogechi Blessing Nwaeze",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Adaora Francisca Ogwudu",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Abdulbaqiy Taiwo",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Clinton Eromobor Onosetale",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Ogechukwu Nwabasili",
+    "dept": "RAI",
+    "role": ""
+   },
+   {
+    "name": "Kehinde Sule",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Sadeeq Abdul-Hakeem",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Stanley Okhavhe",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Victor Ahamefula",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Ossai Chibuzor",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Princess Irikefe",
+    "dept": "LOGIC",
+    "role": ""
+   }
+  ]
+ },
+ {
+  "n": 4,
+  "name": "Milestones",
+  "members": [
+   {
+    "name": "Cynthia Opara",
+    "dept": "LOGIC",
+    "role": "Team Lead"
+   },
+   {
+    "name": "Samuel Onabanjo",
+    "dept": "CXOps",
+    "role": "CRM"
+   },
+   {
+    "name": "Ayomide Adesanya",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Oluwaseyi Segun",
+    "dept": "CXOps",
+    "role": ""
+   },
+   {
+    "name": "Blessing Olorundare",
+    "dept": "RAI",
+    "role": ""
+   },
+   {
+    "name": "Olawunmi Gbanile",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Ayomide Adedayo",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Olabisi Akinwalere",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Samuel Chukwuma",
+    "dept": "OFT",
+    "role": ""
+   },
+   {
+    "name": "Opeyemi Bakare",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Temitope Olupona",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Temitope Dairo",
+    "dept": "LOGIC",
+    "role": ""
+   },
+   {
+    "name": "Adedoyin Yusuf",
+    "dept": "LOGIC",
+    "role": ""
+   }
+  ]
+ }
+]

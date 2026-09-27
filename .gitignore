@@ -25,3 +25,4 @@ dist-ssr
 .env
 apps-script/
 supabase/photos.sql
+*.xlsx

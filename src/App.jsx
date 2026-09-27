@@ -3,6 +3,7 @@ import './App.css'
 import { Gratitude, Admin } from './Gratitude.jsx'
 import { Snapshots } from './Snapshots.jsx'
 import { Commitment } from './Commitment.jsx'
+import { Teams } from './Teams.jsx'
 
 const days = [
   { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Black and White', img: ['mon-v2'] },
@@ -109,23 +110,48 @@ function Countdown() {
   )
 }
 
+// Menu: plain links and drop-down groups [label, [[href, title, description], ...]]
+const MENU = [
+  ['#/', 'Home'],
+  ['The Week', [
+    ['#/week', 'The Road Ahead', 'Daily schedule, dress codes & flag-off'],
+    ['#/fun', 'Fun Zone', 'Activities, games & the finale party'],
+    ['#/teams', 'The Teams', 'Find your team for the week'],
+  ]],
+  ['#/leaders', 'Leadership'],
+  ['Get Involved', [
+    ['#/commitment', 'Commitment Wall', 'Make your Extra Mile pledge'],
+    ['#/gratitude', 'Gratitude Wall', 'Say thank you to a colleague'],
+    ['#/snapshots', 'Snapshots', 'Share your photos from the week'],
+  ]],
+  ['CSW 2025', [
+    ['#/rewind', 'Rewind', 'Highlight videos from last year'],
+    ['#/gallery', 'Memory Lane', 'Photos from every day of CSW 2025'],
+  ]],
+]
+
 function Nav({ route }) {
   const [open, setOpen] = useState(false)
-  useEffect(() => setOpen(false), [route])
+  const [drop, setDrop] = useState(null)
+  useEffect(() => { setOpen(false); setDrop(null) }, [route])
   return (
     <header className={`nav ${open ? 'open' : ''}`}>
       <a href="#/" className="logo"><img src="/logo.png" alt="CSW 2026 The Extra Mile" />CSW<span>2026</span></a>
       <button className="burger" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(!open)}><i /><i /><i /></button>
       <nav>
-        <a href="#/" className={route === '#/' ? 'on' : ''}>Home</a>
-        <a href="#/week" className={route === '#/week' ? 'on' : ''}>The Road Ahead</a>
-        <a href="#/fun" className={route === '#/fun' ? 'on' : ''}>Fun Zone</a>
-        <a href="#/leaders" className={route === '#/leaders' ? 'on' : ''}>Leadership</a>
-        <a href="#/commitment" className={route === '#/commitment' ? 'on' : ''}>Commitment Wall</a>
-        <a href="#/gratitude" className={route === '#/gratitude' ? 'on' : ''}>Gratitude Wall</a>
-        <a href="#/rewind" className={route === '#/rewind' ? 'on' : ''}>Rewind</a>
-        <a href="#/snapshots" className={route === '#/snapshots' ? 'on' : ''}>Snapshots</a>
-        <a href="#/gallery" className={route === '#/gallery' ? 'on' : ''}>Memory Lane</a>
+        {MENU.map(([a, b]) => Array.isArray(b) ? (
+          <div key={a} className={`nav-group ${b.some(([h]) => h === route) ? 'on' : ''} ${drop === a ? 'show' : ''}`}
+            onMouseEnter={() => setDrop(a)} onMouseLeave={() => setDrop(null)}>
+            <button className="nav-top" aria-expanded={drop === a} onClick={() => setDrop(drop === a ? null : a)}>{a}<i>▾</i></button>
+            <div className="nav-drop">
+              {b.map(([h, t, d]) => (
+                <a key={h} href={h} className={route === h ? 'on' : ''}><b>{t}</b><small>{d}</small></a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a key={a} href={a} className={`nav-top ${route === a ? 'on' : ''}`}>{b}</a>
+        ))}
       </nav>
     </header>
   )
@@ -296,6 +322,7 @@ function Fun() {
   return (
     <>
       <section className="wrap">
+        <a href="#/teams" className="teams-cta"><span>👥</span><div><b>Which team are you on?</b><small>Trailblazers · Pathfinders · Roadrunners · Milestones</small></div><i>Find my team →</i></a>
         <p className="eyebrow">Fun & Engagement</p>
         <h2>Throughout the week</h2>
         <div className="fun">
@@ -456,7 +483,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams /> })[route] || <Home />}</main>
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>
   )
