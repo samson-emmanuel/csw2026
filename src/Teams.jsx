@@ -53,7 +53,7 @@ export function Teams() {
                   <div key={m.name} className="co-lead">
                     <span className="team-av">{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>
                     <b>{m.name}</b>
-                    <em>{m.role === 'CRM' ? 'CRM · Co-lead' : m.role}</em>
+                    <em>Team Lead</em>
                   </div>
                 ))}
               </div>
@@ -64,7 +64,7 @@ export function Teams() {
                 {members.map((m) => (
                   <li key={m.name} className={`${m.role ? 'lead' : ''} ${hit(m) ? 'me' : ''}`}>
                     <span className="team-av">{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>
-                    <span className="team-name">{m.name}{m.role && <em>{m.role === 'CRM' ? 'CRM · Co-lead' : m.role}</em>}</span>
+                    <span className="team-name">{m.name}{m.role && <em>Team Lead</em>}</span>
                     <span className="team-dept">{m.dept}</span>
                   </li>
                 ))}
