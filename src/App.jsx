@@ -163,10 +163,10 @@ function Home() {
       <section className="hero">
         <div className="road" />
         <img className="hero-logo" src="/logo.png" alt="The Extra Mile" />
-        <p className="eyebrow">Customer Service Week · Oct 5 – 9, 2026</p>
-        <h1>The <em>Extra</em> Mile</h1>
-        <p className="lead">Six days. Six milestones. One commitment — to meet every customer challenge with determination, creativity and teamwork.</p>
+        <p className="eyebrow">Customer Service Week · Oct 5 – 10, 2026</p>
         <Countdown />
+        <p className="lead">Six days. Six milestones. One commitment — to meet every customer challenge with determination, creativity and teamwork.</p>
+        <h1 className="hero-title">The <em>Extra</em> Mile</h1>
         <a className="btn" href="#/week">Explore the week</a>
       </section>
       <NowNext />
