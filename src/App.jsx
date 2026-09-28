@@ -11,7 +11,7 @@ const days = [
   { d: 'WED', t: '“Walk In My Shoes” & CX Academy Launch', s: 'Job-shadowing & role swap', dress: 'Denim Day', img: ['wed-v2'] },
   { d: 'THU', t: 'Customer Delight Challenge', s: 'Team role-play competition', dress: 'Team Colors / Jersey Day', img: ['thu-v2'] },
   { d: 'FRI', t: '“Finish Strong” Celebration', s: 'Awards, games, music & refreshments', dress: 'Owambe Day · Native Attire', img: ['fri-v3'] },
-  { d: 'SAT', t: 'CSW Finale Party', s: 'CX Team finale party' },
+  { d: 'SAT', t: 'CSW Finale Party', s: 'CX Team finale party', img: ['logo'] },
 ]
 
 const agenda = [
@@ -283,7 +283,7 @@ function Week() {
               <h3>{x.d}</h3>
               <h4>{x.t}</h4>
               <p>{x.s}</p>
-              {x.img && <div className="dress">{x.img.map((m) => <img key={m} src={`/dress/${m}.webp`} alt={x.dress} loading="lazy" />)}</div>}
+              {x.img && <div className="dress">{x.img.map((m) => <img key={m} src={m === 'logo' ? '/logo.png' : `/dress/${m}.webp`} alt={x.dress} loading="lazy" />)}</div>}
               {x.dress && <small>Dress code · {x.dress}</small>}
             </article>
           ))}

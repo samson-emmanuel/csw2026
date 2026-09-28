@@ -589,3 +589,38 @@ h1, h2 { text-wrap: balance; }
 .hero .count div:nth-child(3) { animation-delay: -2s; }
 .hero .count div:nth-child(4) { animation-delay: -3s; }
 @media (prefers-reduced-motion: reduce) { .hero .count div { animation: none; } }
+/* Inner-page banners: size to content, no big empty band above the title */
+.hero.small, .hero.small.snap-hero { min-height: 0; padding: 48px 5vw 44px; }
+.hero.small .eyebrow { margin-bottom: 10px; }
+.hero.small .lead { margin-top: 14px; }
+@media (max-width: 800px) { .hero.small, .hero.small.snap-hero { padding: 36px 20px 32px; } }
+.hero.small h1 { font-size: clamp(34px, 5.5vw, 68px); }
+.hero.small + .wrap, .hero.small + section.wrap, .hero.small ~ .snap-bar + .wrap, .pledge-wait + .wrap { padding-top: 48px; }
+@media (max-width: 800px) { .hero.small + .wrap, .hero.small + section.wrap { padding-top: 32px; } }
+main > .wrap:first-child { padding-top: 56px; }
+@media (max-width: 800px) { main > .wrap:first-child { padding-top: 36px; } }
+/* Countdown: Days in red, Hrs/Min/Sec in white */
+.hero .count div:not(:first-child) { border-color: #ffffff26; background: #ffffff0d; }
+.hero .count div:not(:first-child) b { color: #fff; text-shadow: 0 6px 30px #ffffff26; }
+/* Road centre line in yellow */
+.road::after { background: repeating-linear-gradient(#f5c400 0 40px, transparent 40px 80px); opacity: .75; }
+/* Road centre line uses the logo yellow */
+.road::after { background: repeating-linear-gradient(#ecbc40 0 40px, transparent 40px 80px); opacity: .85; }
+/* Week page: dress-code pictures sit at the top of every card so they line up */
+@media (min-width: 1100px) { .days { grid-template-columns: repeat(6, 1fr); gap: 12px; } .day { padding: 22px 16px; } }
+@media (min-width: 801px) and (max-width: 1099px) { .days { grid-template-columns: repeat(3, 1fr); } }
+/* Week: text on top, picture below — pictures line up because the text area stretches and the dress-code line has a fixed height */
+.day .dress { margin-top: auto; height: 220px; border-radius: 12px; }
+.day p { flex: 1; }
+.day small { min-height: 3.4em; line-height: 1.4; }
+.day small { min-height: 4.2em; }
+/* Day colours from the dress-code slide */
+.day:nth-child(1) { --dc: #000000; } .day:nth-child(2) { --dc: #073485; } .day:nth-child(3) { --dc: #03bbf1; }
+.day:nth-child(4) { --dc: #ed1b24; } .day:nth-child(5) { --dc: #97723e; }
+.day:not(:last-child) { border-top-color: var(--dc); }
+.day:not(:last-child) h3, .day:not(:last-child) small, .day:not(:last-child) .mile { color: var(--dc); }
+.day:not(:last-child):hover { box-shadow: 0 20px 40px -12px color-mix(in srgb, var(--dc) 45%, transparent); }
+/* Saturday: logo as its picture */
+.day:last-child .dress { display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #1d4fb0, #061f55); }
+.day:last-child .dress img { width: 78%; height: auto; object-fit: contain; filter: drop-shadow(0 10px 20px #0008); }
+.day:last-child::after { content: ""; min-height: calc(11px * 4.2); }
