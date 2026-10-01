@@ -96,15 +96,15 @@ function useRoute() {
   return r
 }
 
-function Countdown() {
-  const target = new Date('2026-10-05T09:00:00').getTime()
-  const [now, setNow] = useState(Date.now())
-  useEffect(() => { const i = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(i) }, [])
-  const ms = Math.max(0, target - now)
+// Flag-off: Mon 5 Oct 2026, 09:00 Nigeria time (WAT) for every viewer
+const LAUNCH = new Date('2026-10-05T09:00:00+01:00').getTime()
+
+function Countdown({ ms }) {
   const parts = [[86400000, 'Days'], [3600000, 'Hrs'], [60000, 'Min'], [1000, 'Sec']]
+  const soon = ms <= 3 * 86400000 // final 3 days: Days box turns yellow and blinks
   let rest = ms
   return (
-    <div className="count">
+    <div className={`count ${soon ? 'soon' : ''}`}>
       {parts.map(([u, l]) => { const v = Math.floor(rest / u); rest -= v * u; return <div key={l}><b>{String(v).padStart(2, '0')}</b><span>{l}</span></div> })}
     </div>
   )
@@ -158,15 +158,19 @@ function Nav({ route }) {
 }
 
 function Home() {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => { const i = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(i) }, [])
+  const ms = Math.max(0, LAUNCH - now)
+  const live = ms === 0 // countdown finished: the title takes its place
   return (
     <>
       <section className="hero">
         <div className="road" />
         <img className="hero-logo" src="/logo.png" alt="The Extra Mile" />
         <p className="eyebrow">Customer Service Week · Oct 5 – 10, 2026</p>
-        <Countdown />
+        {live ? <h1 className="hero-big">The <em>Extra</em> Mile</h1> : <Countdown ms={ms} />}
         <p className="lead">Six days. Six milestones. One commitment — to meet every customer challenge with determination, creativity and teamwork.</p>
-        <h1 className="hero-title">The <em>Extra</em> Mile</h1>
+        {!live && <h1 className="hero-title">The <em>Extra</em> Mile</h1>}
         <a className="btn" href="#/week">Explore the week</a>
       </section>
       <NowNext />
