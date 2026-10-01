@@ -30,7 +30,7 @@
    },
    {
     "name": "Fiyinfoluwa Adedeji",
-    "dept": "RAI",
+    "dept": "OFT",
     "role": ""
    },
    {
@@ -39,7 +39,7 @@
     "role": ""
    },
    {
-    "name": "Perpetual Okolie",
+    "name": "Kabir Atobatele",
     "dept": "OFT",
     "role": ""
    },
@@ -279,11 +279,6 @@
    {
     "name": "Adedoyin Yusuf",
     "dept": "LOGIC",
-    "role": ""
-   },
-   {
-    "name": "Kabir Atobatele",
-    "dept": "CXOps",
     "role": ""
    }
   ]
