@@ -55,7 +55,7 @@ export function Buzzer() {
     <section className={`bz ${left <= 10 && running ? 'hurry' : ''}`}>
       <p className="eyebrow">60-Second Challenge</p>
       <div className="bz-ring" style={{ '--p': pct }}>
-        <div className="bz-time"><b>{left}</b><small>seconds</small></div>
+        <div className="bz-time">{timeUp ? <img className="bz-logo" src="/logo.png" alt="Time’s up" /> : <><b>{left}</b><small>seconds</small></>}</div>
       </div>
 
       {!running && !winner && (

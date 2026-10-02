@@ -829,3 +829,19 @@ main > .wrap:first-child { padding-top: 56px; }
   .adm-form { grid-template-columns: 1fr 1fr auto; }
   .adm-staff { grid-template-columns: 1fr 1fr; column-gap: 24px; }
 }
+/* Timer: fit one screen, no scrolling */
+.bz { height: calc(100svh - 66px); min-height: 0; overflow: hidden; gap: clamp(8px, 2.2vh, 22px); padding: clamp(10px, 2.5vh, 28px) 16px; justify-content: space-evenly; }
+.bz .eyebrow { margin: 0; }
+.bz-ring { width: min(340px, 70vw, 40vh); }
+.bz-time b { font-size: clamp(56px, min(16vw, 14vh), 140px); }
+.bz-start { padding: clamp(12px, 1.8vh, 18px) 48px; }
+.bz-up { font-size: clamp(18px, 3vh, 26px); }
+.bz-teams { gap: clamp(6px, 1.4vh, 14px); }
+.bz-teams > div button { padding: clamp(10px, 2vh, 22px) 10px; font-size: clamp(14px, 2.2vh, 18px); gap: 4px; }
+.bz-teams > div button i { font-size: clamp(22px, 4vh, 34px); }
+.bz-logo { width: 72%; animation: logoZoom 1.4s ease-in-out infinite; filter: drop-shadow(0 10px 30px #ecbc4066); }
+@keyframes logoZoom { 0%, 100% { transform: scale(.8); } 50% { transform: scale(1.12); } }
+@media (max-width: 800px) { .bz { height: calc(100svh - 60px); } }
+/* Centre the logo exactly inside the timer circle */
+.bz-time { position: relative; }
+.bz-logo { position: absolute; top: 0; right: 0; bottom: 0; left: 0; margin: auto; width: 68%; height: 68%; object-fit: contain; transform-origin: 50% 50%; }
