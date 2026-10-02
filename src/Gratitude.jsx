@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { PledgeSign } from './Commitment.jsx'
+import { ScoreAdmin } from './Scoreboard.jsx'
 
 const env = import.meta.env
 export const db = env.VITE_SUPABASE_URL ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY) : null
@@ -154,6 +154,9 @@ export function Admin() {
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [tab, setTab] = useState('approve')
+  const [qFilter, setQFilter] = useState('pending')
+  const [staffQ, setStaffQ] = useState('')
 
   // Clipboard API with a fallback for browsers/contexts that block it
   const copy = async (text) => {
@@ -184,6 +187,12 @@ export function Admin() {
   useEffect(() => { if (db && code) { loadStaff(code); loadPhotos(code) } }, [code, loadStaff, loadPhotos])
   const setPhoto = async (id, ok) => { await db.rpc('admin_set_photo', { p_admin: code, p_id: id, p_approved: ok }); loadPhotos(code) }
   const delPhoto = async (id) => { if (!confirm('Remove this photo from the site? (The file stays in your Drive.)')) return; await db.rpc('admin_delete_photo', { p_admin: code, p_id: id }); loadPhotos(code) }
+  // Keep the approval queues fresh without a refresh
+  useEffect(() => {
+    if (!db || !code) return
+    const i = setInterval(() => { loadPhotos(code); loadPledges(code) }, 20000)
+    return () => clearInterval(i)
+  }, [code, loadPhotos, loadPledges])
   if (!db) return <Setup />
 
   const unlock = (e) => { e.preventDefault(); const c = new FormData(e.target).get('admin'); store.set('gw-admin', c); setMsg(''); setCode(c) }
@@ -203,82 +212,170 @@ export function Admin() {
   const delNote = async (id) => { if (!confirm('Delete this note?')) return; await db.rpc('admin_delete_note', { p_admin: code, p_id: id }); reload() }
 
   if (!code) return (
-    <section className="wrap admin">
-      <form className="gw-card" onSubmit={unlock}>
-        <h3>Admin</h3>
-        <input name="admin" type="password" placeholder="Admin passcode" required />
+    <section className="adm-lock">
+      <form className="adm-lock-card" onSubmit={unlock}>
+        <img src="/logo.png" alt="" />
+        <h3>Admin dashboard</h3>
+        <p>Enter the admin passcode to manage staff, approvals and scores.</p>
+        <input name="admin" type="password" placeholder="Admin passcode" required autoFocus />
         {msg && <div className="gw-err">{msg}</div>}
         <button className="btn">Unlock</button>
       </form>
     </section>
   )
 
+  const pendPhotos = photos.filter((p) => !p.approved)
+  const pendPledges = pledges.filter((p) => !p.approved)
+  const shownPhotos = qFilter === 'pending' ? pendPhotos : photos.filter((p) => p.approved)
+  const shownPledges = qFilter === 'pending' ? pendPledges : pledges.filter((p) => p.approved)
+  const shownStaff = staffQ ? staff.filter((x) => `${x.name} ${x.email}`.toLowerCase().includes(staffQ.toLowerCase())) : staff
+  const TABS = [
+    ['approve', '✅', 'Approvals', pendPhotos.length + pendPledges.length],
+    ['scores', '🏆', 'Scores', 0],
+    ['staff', '👥', 'Staff', 0],
+    ['notes', '💌', 'Notes', 0],
+  ]
+
   return (
-    <section className="wrap admin">
-      <div className="gw-bar"><h2>Gratitude Wall Admin</h2><button onClick={() => { store.set('gw-admin', null); setCode(null) }}>Lock</button></div>
-      <form className="admin-add" onSubmit={onAdd}>
-        <input name="name" placeholder="Full name" required />
-        <input name="email" type="email" placeholder="Email address" required />
-        <button className="btn" disabled={busy}>{busy ? 'Working…' : env.VITE_EMAILJS_SERVICE_ID ? 'Register & send passcode' : 'Register & get passcode'}</button>
-      </form>
-      {msg && (typeof msg === 'string' ? <div className="admin-msg">{msg}</div> : (
-        <div className="admin-msg">
-          <b>{msg.name}</b> · {msg.email}<br />
-          Passcode: <code className="pass">{msg.pass}</code>
-          {(() => {
-            const sub = encodeURIComponent('Your CSW 2026 Gratitude Wall passcode')
-            const body = encodeURIComponent(`Hi ${msg.name},
-
-You can now post appreciation notes on the CSW 2026 Gratitude Wall.
-
-Email: ${msg.email}
-Passcode: ${msg.pass}
-
-Sign in here: ${window.location.origin}/#/gratitude
-
-Thank you for going the extra mile!`)
-            const to = encodeURIComponent(msg.email)
-            return (
-              <>
-                <a className="mail-btn" target="_blank" rel="noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${sub}&body=${body}`}>✉ Gmail</a>
-                <a className="mail-btn alt" target="_blank" rel="noreferrer" href={`https://outlook.office.com/mail/deeplink/compose?to=${to}&subject=${sub}&body=${body}`}>Outlook</a>
-                <a className="mail-btn alt" href={`mailto:${msg.email}?subject=${sub}&body=${body}`}>Email app</a>
-              </>
-            )
-          })()}
-          <button className={copied ? 'copied' : ''} onClick={() => copy(`Hi ${msg.name}, your CSW Gratitude Wall login:
-Email: ${msg.email}
-Passcode: ${msg.pass}
-${window.location.origin}/#/gratitude`)}>{copied ? '✓ Copied' : 'Copy message'}</button>
-          <div className="admin-note">{msg.sent ? 'Also emailed automatically.' : 'Send this to them yourself (WhatsApp, Teams or email). It can’t be shown again; use “Reset” to issue a new one.'}</div>
+    <div className="adm">
+      <header className="adm-head">
+        <div className="adm-title">
+          <div><small>CSW 2026</small><h2>Admin dashboard</h2></div>
+          <button className="adm-lock-btn" onClick={() => { store.set('gw-admin', null); setCode(null) }}>🔒 Lock</button>
         </div>
-      ))}
-      <h3 className="admin-h">Staff ({staff.length})</h3>
-      <div className="admin-list">
-        {staff.map((s) => (
-          <div key={s.id}><b>{s.name}</b><span>{s.email}</span>
-            <button onClick={() => add(s.name, s.email)} disabled={busy}>Reset passcode</button>
-            <button onClick={() => remove(s)}>Remove</button>
-          </div>
+        <div className="adm-stats">
+          <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendPhotos.length ? 'hot' : ''}><b>{pendPhotos.length}</b><span>Photos to review</span></button>
+          <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendPledges.length ? 'hot' : ''}><b>{pendPledges.length}</b><span>Pledges to review</span></button>
+          <button onClick={() => setTab('staff')}><b>{staff.length}</b><span>Staff registered</span></button>
+          <button onClick={() => setTab('notes')}><b>{notes.length}</b><span>Gratitude notes</span></button>
+        </div>
+        <div className="adm-links">
+          <a href="#/timer">⏱ Challenge timer</a>
+          <a href="#/scoreboard" target="_blank" rel="noreferrer">📺 Open scoreboard</a>
+        </div>
+      </header>
+
+      <nav className="adm-tabs">
+        {TABS.map(([k, ic, l, n]) => (
+          <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
+            <i>{ic}</i><span>{l}</span>{n > 0 && <em>{n}</em>}
+          </button>
         ))}
-      </div>
-      <h3 className="admin-h">Photos ({photos.filter((p) => !p.approved).length} awaiting approval)</h3>
-      <div className="admin-photos">
-        {photos.map((p) => (
-          <figure key={p.id} className={p.approved ? '' : 'pending'}>
-            <img src={`https://drive.google.com/thumbnail?id=${p.drive_id}&sz=w400`} alt="" loading="lazy" referrerPolicy="no-referrer" />
-            <figcaption><b>{p.day}</b> · {p.uploader}{p.caption && <> · {p.caption}</>}</figcaption>
-            <div>
-              <button onClick={() => setPhoto(p.id, !p.approved)}>{p.approved ? 'Unapprove' : 'Approve'}</button>
-              <button onClick={() => delPhoto(p.id)}>Delete</button>
+      </nav>
+
+      <main className="adm-body">
+        {tab === 'approve' && (
+          <>
+            <div className="adm-seg">
+              <button className={qFilter === 'pending' ? 'on' : ''} onClick={() => setQFilter('pending')}>Waiting ({pendPhotos.length + pendPledges.length})</button>
+              <button className={qFilter === 'approved' ? 'on' : ''} onClick={() => setQFilter('approved')}>Approved</button>
             </div>
-          </figure>
-        ))}
-      </div>
-      <h3 className="admin-h">Pledges ({pledges.filter((p) => !p.approved).length} awaiting approval)</h3>
-      <div className="signs">{pledges.map((p) => <PledgeSign key={p.id} p={p} onApprove={setPledge} onDelete={delPledge} />)}</div>
-      <h3 className="admin-h">Notes ({notes.length})</h3>
-      <div className="wall">{notes.map((n) => <Note key={n.id} n={n} onDelete={delNote} />)}</div>
-    </section>
+
+            <section className="adm-card">
+              <h3>Photos <span>{shownPhotos.length}</span></h3>
+              {shownPhotos.length ? (
+                <div className="adm-photos">
+                  {shownPhotos.map((p) => (
+                    <figure key={p.id}>
+                      <a href={`https://drive.google.com/file/d/${p.drive_id}/view`} target="_blank" rel="noreferrer">
+                        <img src={`https://drive.google.com/thumbnail?id=${p.drive_id}&sz=w500`} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                      </a>
+                      <figcaption><b>{p.day}</b>{p.uploader}{p.caption && <i>“{p.caption}”</i>}</figcaption>
+                      <div className="adm-act">
+                        <button className={p.approved ? '' : 'yes'} onClick={() => setPhoto(p.id, !p.approved)}>{p.approved ? 'Hide' : '✓ Approve'}</button>
+                        <button className="no" onClick={() => delPhoto(p.id)}>✕</button>
+                      </div>
+                    </figure>
+                  ))}
+                </div>
+              ) : <div className="adm-empty">{qFilter === 'pending' ? '🎉 No photos waiting.' : 'No approved photos yet.'}</div>}
+            </section>
+
+            <section className="adm-card">
+              <h3>Pledges <span>{shownPledges.length}</span></h3>
+              {shownPledges.length ? (
+                <div className="adm-pledges">
+                  {shownPledges.map((p) => (
+                    <div key={p.id} className="adm-pledge">
+                      <div><b>{p.name}</b><p>“{p.pledge}”</p></div>
+                      <div className="adm-act">
+                        <button className={p.approved ? '' : 'yes'} onClick={() => setPledge(p.id, !p.approved)}>{p.approved ? 'Hide' : '✓ Approve'}</button>
+                        <button className="no" onClick={() => delPledge(p.id)}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="adm-empty">{qFilter === 'pending' ? '🎉 No pledges waiting.' : 'No approved pledges yet.'}</div>}
+            </section>
+          </>
+        )}
+
+        {tab === 'scores' && (
+          <section className="adm-card">
+            <h3>Scoreboard <span>live</span></h3>
+            <ScoreAdmin code={code} />
+          </section>
+        )}
+
+        {tab === 'staff' && (
+          <>
+            <section className="adm-card">
+              <h3>Register staff</h3>
+              <form className="adm-form" onSubmit={onAdd}>
+                <input name="name" placeholder="Full name" required />
+                <input name="email" type="email" placeholder="Email address" required />
+                <button className="btn" disabled={busy}>{busy ? 'Working…' : env.VITE_EMAILJS_SERVICE_ID ? 'Register & send passcode' : 'Register & get passcode'}</button>
+              </form>
+              {msg && (typeof msg === 'string' ? <div className="admin-msg">{msg}</div> : (
+                <div className="adm-pass">
+                  <div><small>{msg.email}</small><b>{msg.name}</b></div>
+                  <code>{msg.pass}</code>
+                  <div className="adm-share">
+                    {(() => {
+                      const sub = encodeURIComponent('Your CSW 2026 Gratitude Wall passcode')
+                      const body = encodeURIComponent(`Hi ${msg.name},\n\nYou can now post appreciation notes on the CSW 2026 Gratitude Wall.\n\nEmail: ${msg.email}\nPasscode: ${msg.pass}\n\nSign in here: ${window.location.origin}/#/gratitude\n\nThank you for going the extra mile!`)
+                      const to = encodeURIComponent(msg.email)
+                      return (
+                        <>
+                          <a className="mail-btn" target="_blank" rel="noreferrer" href={`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${sub}&body=${body}`}>✉ Gmail</a>
+                          <a className="mail-btn alt" target="_blank" rel="noreferrer" href={`https://outlook.office.com/mail/deeplink/compose?to=${to}&subject=${sub}&body=${body}`}>Outlook</a>
+                          <a className="mail-btn alt" href={`mailto:${msg.email}?subject=${sub}&body=${body}`}>Email app</a>
+                          <button className={`mail-btn alt ${copied ? 'copied' : ''}`} onClick={() => copy(`Hi ${msg.name}, your CSW Gratitude Wall login:\nEmail: ${msg.email}\nPasscode: ${msg.pass}\n${window.location.origin}/#/gratitude`)}>{copied ? '✓ Copied' : 'Copy'}</button>
+                        </>
+                      )
+                    })()}
+                  </div>
+                  <small className="admin-note">{msg.sent ? 'Also emailed automatically.' : 'Shown once only — share it now. Use “Reset” to issue a new one.'}</small>
+                </div>
+              ))}
+            </section>
+            <section className="adm-card">
+              <h3>Staff <span>{staff.length}</span></h3>
+              <input className="adm-search" placeholder="Search name or email…" value={staffQ} onChange={(e) => setStaffQ(e.target.value)} />
+              <div className="adm-staff">
+                {shownStaff.map((x) => (
+                  <div key={x.id}>
+                    <span className="team-av">{x.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>
+                    <div><b>{x.name}</b><small>{x.email}</small></div>
+                    <div className="adm-act">
+                      <button onClick={() => add(x.name, x.email)} disabled={busy}>Reset</button>
+                      <button className="no" onClick={() => remove(x)}>✕</button>
+                    </div>
+                  </div>
+                ))}
+                {!shownStaff.length && <div className="adm-empty">No staff found.</div>}
+              </div>
+            </section>
+          </>
+        )}
+
+        {tab === 'notes' && (
+          <section className="adm-card">
+            <h3>Gratitude notes <span>{notes.length}</span></h3>
+            {notes.length ? <div className="wall">{notes.map((n) => <Note key={n.id} n={n} onDelete={delNote} />)}</div> : <div className="adm-empty">No notes yet.</div>}
+          </section>
+        )}
+      </main>
+    </div>
   )
 }

@@ -4,6 +4,8 @@ import { Gratitude, Admin } from './Gratitude.jsx'
 import { Snapshots } from './Snapshots.jsx'
 import { Commitment } from './Commitment.jsx'
 import { Teams } from './Teams.jsx'
+import { Scoreboard } from './Scoreboard.jsx'
+import { Buzzer } from './Buzzer.jsx'
 
 const days = [
   { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Black and White', img: ['mon-v2'] },
@@ -117,6 +119,7 @@ const MENU = [
     ['#/week', 'The Road Ahead', 'Daily schedule, dress codes & flag-off'],
     ['#/fun', 'Fun Zone', 'Activities, games & the finale party'],
     ['#/teams', 'The Teams', 'Find your team for the week'],
+    ['#/scoreboard', 'Scoreboard', 'Live game scores & team standings'],
   ]],
   ['#/leaders', 'Leadership'],
   ['Get Involved', [
@@ -503,12 +506,36 @@ function Rewind() {
   )
 }
 
+/* global __BUILD_ID__ */
+// Checks for a newer deploy every minute and when the tab regains focus.
+// Hidden tab → reload silently; visible → show a Refresh bar (never interrupts someone mid-task).
+function useUpdateReady() {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' })
+        if (!r.ok) return
+        const { v } = await r.json()
+        if (v && v !== __BUILD_ID__) { if (document.hidden) window.location.reload(); else setReady(true) }
+      } catch { /* offline or dev server */ }
+    }
+    const i = setInterval(check, 60000)
+    const onVis = () => { if (!document.hidden) check() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { clearInterval(i); document.removeEventListener('visibilitychange', onVis) }
+  }, [])
+  return ready
+}
+
 export default function App() {
+  const updateReady = useUpdateReady()
   const route = useRoute()
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams />, '#/scoreboard': <Scoreboard />, '#/timer': <Buzzer /> })[route] || <Home />}</main>
+      {updateReady && <div className="update-bar">✨ The site has been updated <button onClick={() => window.location.reload()}>Refresh</button></div>}
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>
   )

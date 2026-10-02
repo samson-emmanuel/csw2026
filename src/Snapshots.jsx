@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { db, store } from './Gratitude.jsx'
 
 export const SNAP_DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Finale']
@@ -31,7 +31,7 @@ export function Snapshots() {
   const [toast, setToast] = useState('')
   const [day, setDay] = useState(SNAP_DAYS[0])
   const [open, setOpen] = useState(null)
-  const [user, setUser] = useState(() => store.get('gw-user'))
+  const [name, setName] = useState(() => store.get('snap-name') || store.get('gw-user')?.name || '')
   const [modal, setModal] = useState(false)
   const [err, setErr] = useState('')
   const [status, setStatus] = useState('')
@@ -57,11 +57,16 @@ export function Snapshots() {
     setTotal(count || 0)
     setLoading(false)
   }
+  const loadCounts = () => Promise.all(SNAP_DAYS.map((d) => db.from('photos').select('id', { count: 'exact', head: true }).eq('day', d)))
+    .then((r) => setCounts(Object.fromEntries(r.map((x, i) => [SNAP_DAYS[i], x.count || 0]))))
   useEffect(() => { if (db) loadPage(day, 0) }, [day])
+  // Live: when an admin approves/removes a photo, refresh the counts and the open day
+  const dayRef = useRef(day); dayRef.current = day
   useEffect(() => {
     if (!db) return
-    Promise.all(SNAP_DAYS.map((d) => db.from('photos').select('id', { count: 'exact', head: true }).eq('day', d)))
-      .then((r) => setCounts(Object.fromEntries(r.map((x, i) => [SNAP_DAYS[i], x.count || 0]))))
+    loadCounts()
+    const ch = db.channel('photos').on('postgres_changes', { event: '*', schema: 'public', table: 'photos' }, () => { loadCounts(); loadPage(dayRef.current, 0) }).subscribe()
+    return () => { db.removeChannel(ch) }
   }, [])
 
   const shown = items
@@ -69,21 +74,10 @@ export function Snapshots() {
   const openUpload = () => { setModal(true); setErr(''); setStatus(''); setUpDay(day) }
   const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 
-  const login = async (e) => {
-    e.preventDefault()
-    const f = new FormData(e.target)
-    const email = f.get('email'), code = f.get('code')
-    setBusy(true)
-    const { data, error } = await db.rpc('login', { p_email: email, p_code: code })
-    setBusy(false)
-    if (error || !data) return setErr('Email or passcode is incorrect.')
-    const u = { email, code, name: data }
-    store.set('gw-user', u); setUser(u); setErr('')
-  }
-
   const upload = async () => {
     if (!picked.length) return setErr('Add at least one photo.')
     setBusy(true); setErr('')
+    store.set('snap-name', name.trim() || null)
     let ok = 0, failed = false
     for (let i = 0; i < picked.length; i++) {
       if (picked[i].state === 'done') continue
@@ -93,7 +87,7 @@ export function Snapshots() {
       try {
         const data = await shrink(picked[i].file)
         // text/plain avoids a CORS preflight, which Apps Script can't answer
-        const r = await fetch(UPLOAD_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ email: user.email, code: user.code, day: upDay, caption, data, type: 'image/jpeg' }) })
+        const r = await fetch(UPLOAD_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ name: name.trim(), day: upDay, caption, data, type: 'image/jpeg' }) })
         res = await r.json()
       } catch { res = { ok: false, error: `Could not upload ${picked[i].file.name}.` } }
       setPicked((p) => p.map((x, j) => (j === i ? { ...x, state: res.ok ? 'done' : 'err' } : x)))
@@ -177,21 +171,15 @@ export function Snapshots() {
 
       {modal && (
         <div className="gw-modal" onClick={closeModal}>
-          {!user ? (
-            <form className="gw-card" onClick={(e) => e.stopPropagation()} onSubmit={login}>
-              <h3>Sign in to share photos</h3>
-              <p>Use the email and passcode sent to you by the CX team.</p>
-              <input name="email" type="email" placeholder="Email address" required />
-              <input name="code" placeholder="Passcode" required autoComplete="off" />
-              {err && <div className="gw-err">{err}</div>}
-              <button className="btn" disabled={busy}>{busy ? 'Checking…' : 'Continue'}</button>
-            </form>
-          ) : (
+          {(
             <div className="up-card" onClick={(e) => e.stopPropagation()}>
               <div className="up-head">
-                <div><h3>Share photos</h3><p>Signed in as <b>{user.name}</b> · 20 per day, 100 in total</p></div>
+                <div><h3>Share photos</h3><p>Photos appear once an admin approves them.</p></div>
                 <button className="up-x" onClick={closeModal} aria-label="Close">✕</button>
               </div>
+
+              <label className="up-label">Your name <i>(optional)</i></label>
+              <input className="up-caption up-name" placeholder="e.g. Ada Obi" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
 
               <label className="up-label">Which day?</label>
               <div className="up-days">{SNAP_DAYS.map((d) => <button type="button" key={d} className={upDay === d ? 'on' : ''} onClick={() => setUpDay(d)}>{d}</button>)}</div>
