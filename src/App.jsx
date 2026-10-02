@@ -35,14 +35,14 @@ const fun = [
 
 const leaders = [
   {
-    name: 'Lolu Alade-Akinyemi', role: 'GMD/CEO', org: 'HBM Nigeria',
+    name: 'Lolu Alade-Akinyemi', video: '1QiS5y9MSbzG9jcQYmfybTIaoAGNkvYor', photo: '/leaderships/lolu.webp', role: 'GMD/CEO', org: 'HBM Nigeria',
     bio: [
       '',
     ],
     quote: [],
   },
   {
-    name: 'Gbenga Onimowo', role: 'Commercial Director', org: 'HBM Nigeria',
+    name: 'Gbenga Onimowo', video: '1D1OLDxgmefzcFc2HzCF35PSfUQlJMLJ2', photo: '/leaderships/ggc.webp', role: 'Commercial Director', org: 'HBM Nigeria',
     bio: [
       '',
     ],
@@ -348,6 +348,27 @@ function Fun() {
   )
 }
 
+// Video speech from Google Drive; loads only when Play is clicked
+function LeaderVideo({ l }) {
+  const [play, setPlay] = useState(false)
+  return (
+    <div className="lv">
+      <span className="lv-label">Video message</span>
+      <div className="lv-frame">
+        {play ? (
+          <iframe src={`https://drive.google.com/file/d/${l.video}/preview`} title={`Video message from ${l.name}`} allow="autoplay; fullscreen" allowFullScreen />
+        ) : (
+          <button className="lv-poster" onClick={() => setPlay(true)} aria-label={`Play video message from ${l.name}`}>
+            {l.photo && <img src={l.photo} alt="" />}
+            <span className="lv-play">▶</span>
+            <span className="lv-cap">Watch the message from {l.name.split(' ')[0]}</span>
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Leaders() {
   return (
     <>
@@ -360,7 +381,7 @@ function Leaders() {
         {leaders.map((l, i) => (
           <article key={l.name} className={`leader ${i % 2 ? 'rev' : ''}`}>
             <div className="portrait">
-              <div className="mono">{initials(l.name)}</div>
+              {l.photo ? <img className="leader-photo" src={l.photo} alt={l.name} /> : <div className="mono">{initials(l.name)}</div>}
               <div className="tag">
                 <strong>{l.name}</strong>
                 <span>{l.role}</span>
@@ -370,7 +391,7 @@ function Leaders() {
             <div className="bio">
               <p className="eyebrow">{l.role}</p>
               <h2>{l.name}</h2>
-              <p className="speech">{l.bio[0]}</p>
+              {l.video ? <LeaderVideo l={l} /> : <p className="speech">{l.bio[0]}</p>}
               {l.bio.slice(1).map((p) => <p key={p.slice(0, 20)}>{p}</p>)}
               {[].concat(l.quote).map((q) => <blockquote key={q}>“{q}”</blockquote>)}
             </div>
