@@ -1,20 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { db, store } from './Gratitude.jsx'
-import { SB_TEAMS } from './Scoreboard.jsx'
+import { SB_TEAMS, useLive } from './Scoreboard.jsx'
 
-const SECONDS = 60
 const POINTS = 10
 
-// Admin-only 60-second challenge timer: Start → team buttons → winner gets a +10 celebration
+// Admin-only: pick the team that's up → Start (everyone sees the 60s countdown on the Scoreboard) → award +10
 export function Buzzer() {
   const [code, setCode] = useState(() => store.get('gw-admin'))
   const [ok, setOk] = useState(false)
   const [err, setErr] = useState('')
-  const [left, setLeft] = useState(SECONDS)
-  const [running, setRunning] = useState(false)
   const [winner, setWinner] = useState(null)
+  const { team, left, total } = useLive()
 
-  // Verify the stored admin passcode
   useEffect(() => {
     if (!db || !code) return
     db.rpc('is_admin', { p_admin: code }).then(({ data }) => {
@@ -23,18 +20,7 @@ export function Buzzer() {
     })
   }, [code])
 
-  useEffect(() => {
-    if (!running) return
-    const i = setInterval(() => setLeft((s) => {
-      if (s <= 1) { setRunning(false); return 0 }
-      return s - 1
-    }), 1000)
-    return () => clearInterval(i)
-  }, [running])
-
-  const start = () => { setWinner(null); setLeft(SECONDS); setRunning(true) }
-  const pick = (t) => { setRunning(false); setWinner(t) }
-  const reset = () => { setRunning(false); setWinner(null); setLeft(SECONDS) }
+  const set = async (k, start) => { const { error } = await db.rpc('admin_set_live', { p_admin: code, p_team: k, p_start: start }); if (error) setErr(error.message) }
 
   if (!ok) return (
     <section className="wrap admin">
@@ -48,36 +34,47 @@ export function Buzzer() {
     </section>
   )
 
-  const pct = (left / SECONDS) * 100
-  const timeUp = !running && left === 0 && !winner
+  const running = left !== null && left > 0
+  const timeUp = left === 0 && !winner
+  const shown = left ?? total
 
   return (
-    <section className={`bz ${left <= 10 && running ? 'hurry' : ''}`}>
-      <p className="eyebrow">60-Second Challenge</p>
-      <div className="bz-ring" style={{ '--p': pct }}>
-        <div className="bz-time">{timeUp ? <img className="bz-logo" src="/logo.png" alt="Time’s up" /> : <><b>{left}</b><small>seconds</small></>}</div>
+    <section className={`bz ${running && left <= 10 ? 'hurry' : ''}`} style={team ? { '--tc': team.c } : undefined}>
+      <p className="eyebrow">{team ? <>Up now: <b className="bz-up-team">{team.ic} {team.name}</b></> : '60-Second Challenge'}</p>
+      <div className="bz-ring" style={{ '--p': (shown / total) * 100 }}>
+        <div className="bz-time">{timeUp ? <img className="bz-logo" src="/logo.png" alt="Time’s up" /> : <><b>{shown}</b><small>seconds</small></>}</div>
       </div>
 
       {!running && !winner && (
-        <button className="btn bz-start" onClick={start}>{timeUp ? '↻ Start again' : '▶ Start'}</button>
-      )}
-      {timeUp && <div className="bz-up">⏰ Time’s up!</div>}
-
-      {(running || timeUp) && (
         <div className="bz-teams">
-          <p>{timeUp ? 'Time’s up — award the points?' : 'Which team got it?'}</p>
+          <p>{timeUp ? 'Time’s up — award the points, or pick the next team' : 'Select the team that’s up'}</p>
           <div>
             {SB_TEAMS.map((t, i) => (
-              <button key={t.k} style={{ '--c': t.c, '--d': `${i * 90}ms` }} onClick={() => pick(t)}>
+              <button key={t.k} className={team?.k === t.k ? 'sel' : ''} style={{ '--c': t.c, '--d': `${i * 90}ms` }} onClick={() => set(t.k, false)}>
                 <i>{t.ic}</i>{t.name}
               </button>
             ))}
           </div>
-          {running && <button className="bz-stop" onClick={reset}>Stop</button>}
+          <div className="bz-ctrl">
+            <button className="btn bz-start" disabled={!team} onClick={() => { setWinner(null); set(team.k, true) }}>{timeUp ? '↻ Start again' : '▶ Start 60s'}</button>
+            {timeUp && <button className="btn bz-award" onClick={() => setWinner(team)}>🏆 Award +{POINTS} to {team.name}</button>}
+            {team && <button className="bz-stop" onClick={() => set(null, false)}>Clear</button>}
+          </div>
         </div>
       )}
 
-      {winner && <Celebrate team={winner} left={left} onClose={reset} />}
+      {running && (
+        <div className="bz-teams">
+          <p>{team.name} is playing — did they get it?</p>
+          <div className="bz-ctrl">
+            <button className="btn bz-award" onClick={() => { setWinner(team); set(team.k, false) }}>🏆 Award +{POINTS}</button>
+            <button className="bz-stop" onClick={() => set(team.k, false)}>Stop</button>
+          </div>
+        </div>
+      )}
+
+      {winner && <Celebrate team={winner} left={left} onClose={() => setWinner(null)} />}
+      {err && <div className="gw-err">{err}</div>}
     </section>
   )
 }

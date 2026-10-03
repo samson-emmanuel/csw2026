@@ -5,7 +5,7 @@ import teams from './teams.json'
 const look = {
   Trailblazers: ['#d62d1f', '<path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/>'],
   Pathfinders: ['#073485', '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'],
-  Roadrunners: ['#e09a00', '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'],
+  Pacesetters: ['#e09a00', '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'],
   Milestones: ['#0f6b3c', '<path d="M6 21V4h9l-1 3 4 0v9h-9l1-3H6"/>'],
 }
 const rank = { 'Team Lead': 0, CRM: 1, '': 2 }

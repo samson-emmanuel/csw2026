@@ -845,3 +845,60 @@ main > .wrap:first-child { padding-top: 56px; }
 /* Centre the logo exactly inside the timer circle */
 .bz-time { position: relative; }
 .bz-logo { position: absolute; top: 0; right: 0; bottom: 0; left: 0; margin: auto; width: 68%; height: 68%; object-fit: contain; transform-origin: 50% 50%; }
+/* Scoreboard rounds (public) */
+.sb-table tr.has-rounds { cursor: pointer; }
+.sb-table tr.has-rounds:hover td { background: #faf9f7; }
+.sb-rcount { display: inline-block; margin-left: 10px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: #f3f1ee; color: #777; }
+.sb-table tr.sb-round td { font-size: 14px; font-weight: 600; color: #777; background: #fcfbfa; padding: 9px 16px; }
+.sb-table tr.sb-round td:first-child { padding-left: 32px; font-weight: 600; }
+/* Scoreboard admin: game cards with rounds */
+.sbg { border: 1px solid #ebe8e3; border-radius: 16px; padding: 12px; display: grid; gap: 8px; background: #fff; }
+.sbg-head { display: flex; gap: 8px; align-items: center; }
+.sbg-head input { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 12px; border: 1px solid #ddd; font: inherit; font-size: 16px; font-weight: 800; }
+.sbg-save { font: inherit; font-size: 12px; font-weight: 700; padding: 10px 12px; border-radius: 10px; border: 0; background: #1f9d55; color: #fff; cursor: pointer; white-space: nowrap; }
+.sbg-del { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid #f0d0cc; background: #fff; color: var(--red); cursor: pointer; }
+.sbg-cols, .sbg-round { display: grid; grid-template-columns: 34px repeat(4, 1fr) auto; gap: 6px; align-items: center; }
+.sbg-cols span { font-size: 10px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sbg-round b { font-size: 12px; color: #888; text-align: center; }
+.sbg-round input { width: 100%; min-width: 0; padding: 10px 4px; border-radius: 10px; border: 1px solid #ddd; font: inherit; font-size: 16px; font-weight: 700; text-align: center; }
+.sbg-round.dirty input { border-color: #f5b400; background: #fffbea; }
+.sbg-act { display: flex; gap: 4px; }
+.sbg-act button { font: inherit; font-size: 12px; font-weight: 700; padding: 10px 10px; border-radius: 10px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+.sbg-act button[type=submit] { background: #1f9d55; border-color: #1f9d55; color: #fff; }
+.sbg-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 4px; }
+.sbg-add { font: inherit; font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 10px; border: 1px dashed #999; background: #faf9f7; cursor: pointer; }
+.sbg-foot span { font-size: 12px; font-weight: 700; color: #888; display: flex; gap: 10px; align-items: center; }
+.sbg-foot span b { font-size: 16px; }
+@media (max-width: 560px) {
+  .sbg-cols { display: none; }
+  .sbg-round { grid-template-columns: repeat(4, 1fr); }
+  .sbg-round b { grid-column: 1 / -1; text-align: left; }
+  .sbg-act { grid-column: 1 / -1; } .sbg-act button { flex: 1; padding: 11px; }
+  .sbg-round input::placeholder { font-size: 11px; font-weight: 600; }
+}
+.sb-switch { justify-self: end; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; cursor: pointer; user-select: none; margin-bottom: -14px; }
+.sb-switch input { display: none; }
+.sb-switch span { width: 42px; height: 24px; border-radius: 20px; background: #d6d2cc; position: relative; transition: .25s; }
+.sb-switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: .25s; box-shadow: 0 1px 3px #0003; }
+.sb-switch input:checked + span { background: #1f9d55; } .sb-switch input:checked + span::after { left: 21px; }
+
+/* Shared live timer — public "Now playing" panel */
+.np { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 26px 28px; border-radius: 22px; color: #fff;
+  background: linear-gradient(120deg, var(--c), #0b0b0e 85%); box-shadow: 0 24px 50px -18px var(--c); animation: rise .5s both; }
+.np-team small, .np-clock small { display: block; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; opacity: .8; }
+.np-team b { display: flex; align-items: center; gap: 12px; font-size: clamp(24px, 4vw, 38px); font-weight: 900; }
+.np-team i { font-style: normal; width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: #ffffff26; font-size: 26px; }
+.np-clock { text-align: center; min-width: 110px; }
+.np-clock b { font-size: clamp(48px, 8vw, 76px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.np-clock span { font-size: 18px; font-weight: 800; }
+.np-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: #ffffff1f; }
+.np-bar i { display: block; height: 100%; width: calc(var(--p) * 1%); background: #ecbc40; transition: width .3s linear; }
+.np.hurry .np-clock b { color: #ffd76a; animation: blinkDays .8s infinite; } .np.hurry .np-bar i { background: #fff; }
+/* Admin timer: team selection + controls */
+.bz-up-team { color: var(--tc, #fff); background: #fff; padding: 3px 10px; border-radius: 20px; }
+.bz-teams > div button.sel { outline: 4px solid #fff; outline-offset: 3px; transform: scale(1.04); }
+.bz-ctrl { display: flex !important; gap: 10px; justify-content: center; flex-wrap: wrap; grid-template-columns: none !important; }
+.bz-ctrl .btn { border: 0; cursor: pointer; font: inherit; font-weight: 800; }
+.bz-start:disabled { opacity: .4; cursor: not-allowed; }
+.bz-award { background: #1f9d55 !important; padding: 14px 28px; }
+@media (max-width: 560px) { .np { padding: 18px 18px 24px; } .np-team i { width: 40px; height: 40px; font-size: 20px; } .np-clock { min-width: 80px; } }

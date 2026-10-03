@@ -5,7 +5,7 @@ import { db } from './Gratitude.jsx'
 export const SB_TEAMS = [
   { k: 's1', name: 'Trailblazers', c: '#d62d1f', ic: '🔥' },
   { k: 's2', name: 'Pathfinders', c: '#073485', ic: '🧭' },
-  { k: 's3', name: 'Roadrunners', c: '#e09a00', ic: '⚡' },
+  { k: 's3', name: 'Pacesetters', c: '#e09a00', ic: '⚡' },
   { k: 's4', name: 'Milestones', c: '#0f6b3c', ic: '🚩' },
 ]
 export const SB_DAYS = [
@@ -16,25 +16,69 @@ export const SB_DAYS = [
 const EVENT_END = new Date('2026-10-10T18:00:00+01:00').getTime()
 const ORD = ['1st', '2nd', '3rd', '4th']
 const MEDAL = ['🥇', '🥈', '🥉', '']
+const has = (r) => SB_TEAMS.some((t) => r[t.k] !== null && r[t.k] !== undefined)
 
+// Games with their rounds attached; a game's score per team = sum of its rounds
 export function useGames() {
   const [games, setGames] = useState([])
   const load = useCallback(async () => {
-    const { data } = await db.from('games').select('*').order('n')
-    setGames(data || [])
+    const [{ data: g }, { data: r }] = await Promise.all([
+      db.from('games').select('*').order('n'),
+      db.from('rounds').select('*').order('n'),
+    ])
+    setGames((g || []).map((game) => {
+      const rounds = (r || []).filter((x) => x.game_id === game.id)
+      const tot = Object.fromEntries(SB_TEAMS.map((t) => [t.k, rounds.reduce((a, x) => a + (Number(x[t.k]) || 0), 0)]))
+      const last = [game.updated_at, ...rounds.map((x) => x.updated_at)].sort().pop()
+      return { ...game, rounds, tot, played: rounds.some(has), last }
+    }))
   }, [])
   useEffect(() => {
     if (!db) return
     load()
-    const ch = db.channel('games').on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, load).subscribe()
+    const ch = db.channel('scores')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rounds' }, load)
+      .subscribe()
     return () => { db.removeChannel(ch) }
   }, [load])
   return [games, load]
 }
 
+// Shared "team up + 60s timer" state; left = seconds remaining (null when not running)
+export function useLive() {
+  const [live, setLive] = useState(null)
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    if (!db) return
+    const load = () => db.from('live_state').select('*').eq('id', 1).maybeSingle().then(({ data }) => setLive(data))
+    load()
+    const ch = db.channel('live').on('postgres_changes', { event: '*', schema: 'public', table: 'live_state' }, load).subscribe()
+    const i = setInterval(() => setNow(Date.now()), 250)
+    return () => { db.removeChannel(ch); clearInterval(i) }
+  }, [])
+  const team = SB_TEAMS.find((t) => t.k === live?.team) || null
+  const total = live?.seconds || 60
+  const left = live?.started_at ? Math.max(0, Math.ceil(total - (now - new Date(live.started_at).getTime()) / 1000)) : null
+  return { team, left, total }
+}
+
+function NowPlaying() {
+  const { team, left, total } = useLive()
+  if (!team) return null
+  const up = left === 0
+  return (
+    <div className={`np ${left !== null && left <= 10 && !up ? 'hurry' : ''}`} style={{ '--c': team.c, '--p': left === null ? 100 : (left / total) * 100 }}>
+      <div className="np-team"><small>{left === null ? 'Up next' : up ? 'Time’s up' : 'Now playing'}</small><b><i>{team.ic}</i>{team.name}</b></div>
+      <div className="np-clock">{left === null ? <span>Get ready…</span> : up ? <span>⏰ 0</span> : <><b>{left}</b><small>sec</small></>}</div>
+      <div className="np-bar"><i /></div>
+    </div>
+  )
+}
+
 // Totals per team, ranked (ties share a position)
 function standings(games) {
-  const rows = SB_TEAMS.map((t) => ({ ...t, total: games.reduce((a, g) => a + (Number(g[t.k]) || 0), 0) }))
+  const rows = SB_TEAMS.map((t) => ({ ...t, total: games.reduce((a, g) => a + g.tot[t.k], 0) }))
     .sort((a, b) => b.total - a.total)
   rows.forEach((r, i) => { r.pos = i && r.total === rows[i - 1].total ? rows[i - 1].pos : i })
   return rows
@@ -49,6 +93,9 @@ function todayTab() {
 export function Scoreboard() {
   const [games] = useGames()
   const [tab, setTab] = useState(todayTab)
+  const [openG, setOpenG] = useState({})
+  const [showAll, setShowAll] = useState(() => { try { return localStorage.getItem('sb-all') === '1' } catch { return false } })
+  const toggleAll = () => setShowAll((v) => { try { localStorage.setItem('sb-all', v ? '0' : '1') } catch { /* private mode */ } return !v })
   const [now, setNow] = useState(Date.now())
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 2000); return () => clearInterval(i) }, [])
 
@@ -59,16 +106,17 @@ export function Scoreboard() {
   const table = standings(list)
   const max = Math.max(1, ...table.map((r) => r.total))
   const started = table.some((r) => r.total > 0) // no positions until the first points are in
-  const played = list.filter((g) => SB_TEAMS.some((t) => g[t.k] !== null))
-  const crowned = overall && now > EVENT_END && played.length > 0
-  const fresh = (g) => now - new Date(g.updated_at).getTime() < 8000 && SB_TEAMS.some((t) => g[t.k] !== null)
+  const crowned = overall && now > EVENT_END && started
+  // Most recently scored game on this tab opens its rounds automatically
+  const latest = list.filter((g) => g.played).sort((a, b) => (a.last < b.last ? 1 : -1))[0]?.id
+  const fresh = (g) => g.played && now - new Date(g.last).getTime() < 8000
 
   return (
     <>
       <section className="hero small">
         <p className="eyebrow"><span className="live-dot" /> Live Scoreboard</p>
         <h1>The <em>Race</em> Is On</h1>
-        <p className="lead">Every game, every point, updated live. Which team will go the extra mile?</p>
+        <p className="lead">Every game, every round, every point, updated live. Which team will go the extra mile?</p>
       </section>
 
       <div className="snap-bar">
@@ -79,6 +127,7 @@ export function Scoreboard() {
       </div>
 
       <section className="wrap sb-wrap">
+        <NowPlaying />
         {crowned && (
           <div className="sb-champ" style={{ '--c': table[0].c }}>
             <span>🏆</span>
@@ -91,7 +140,7 @@ export function Scoreboard() {
           {table.map((r) => (
             <div key={r.k} className={`sb-row ${started ? `p${r.pos}` : ''}`} style={{ '--c': r.c }}>
               <span className="sb-pos">{started ? <>{MEDAL[r.pos]}<b>{ORD[r.pos]}</b></> : <b>–</b>}</span>
-              <span className="sb-team"><i>{r.ic}</i>{r.name}{r.pos === 0 && r.total > 0 && <em>{overall ? 'Leading' : 'Day leader'}</em>}</span>
+              <span className="sb-team"><i>{r.ic}</i>{r.name}{started && r.pos === 0 && <em>{overall ? 'Leading' : 'Day leader'}</em>}</span>
               <span className="sb-bar"><i style={{ width: `${(r.total / max) * 100}%` }} /></span>
               <span className="sb-total">{r.total}</span>
             </div>
@@ -99,6 +148,8 @@ export function Scoreboard() {
         </div>
 
         {!overall && (
+          <>
+          <label className="sb-switch"><input type="checkbox" checked={showAll} onChange={toggleAll} /><span />Show all rounds</label>
           <div className="sb-table-wrap">
             <table className="sb-table">
               <thead>
@@ -106,18 +157,25 @@ export function Scoreboard() {
               </thead>
               <tbody>
                 {list.map((g) => {
-                  const done = SB_TEAMS.some((t) => g[t.k] !== null)
-                  const top = done ? Math.max(...SB_TEAMS.map((t) => Number(g[t.k]) || 0)) : null
-                  return (
-                    <tr key={g.id} className={`${done ? '' : 'todo'} ${fresh(g) ? 'flash' : ''}`}>
-                      <td>{g.name}</td>
+                  const top = g.played ? Math.max(...SB_TEAMS.map((t) => g.tot[t.k])) : null
+                  const multi = g.rounds.length > 1
+                  const open = multi && (showAll || (openG[g.id] ?? g.id === latest))
+                  return [
+                    <tr key={g.id} className={`${g.played ? '' : 'todo'} ${fresh(g) ? 'flash' : ''} ${multi ? 'has-rounds' : ''}`} onClick={() => multi && !showAll && setOpenG((o) => ({ ...o, [g.id]: !open }))}>
+                      <td>{g.name}{multi && <span className="sb-rcount">{g.rounds.length} rounds {open ? '▴' : '▾'}</span>}</td>
                       {SB_TEAMS.map((t) => (
-                        <td key={t.k} className={done && Number(g[t.k]) === top && top > 0 ? 'win' : ''} style={{ '--c': t.c }}>
-                          {done ? (g[t.k] ?? '–') : <span className="sb-soon">Coming up</span>}
+                        <td key={t.k} className={g.played && g.tot[t.k] === top && top > 0 ? 'win' : ''} style={{ '--c': t.c }}>
+                          {g.played ? g.tot[t.k] : <span className="sb-soon">Coming up</span>}
                         </td>
                       ))}
-                    </tr>
-                  )
+                    </tr>,
+                    ...(open ? g.rounds.map((r) => (
+                      <tr key={r.id} className="sb-round">
+                        <td>Round {r.n}</td>
+                        {SB_TEAMS.map((t) => <td key={t.k}>{has(r) ? (r[t.k] ?? 0) : '–'}</td>)}
+                      </tr>
+                    )) : []),
+                  ]
                 })}
                 {!list.length && <tr><td colSpan={5} className="sb-none">No games scheduled for {tab} yet.</td></tr>}
               </tbody>
@@ -126,6 +184,7 @@ export function Scoreboard() {
               </tfoot>
             </table>
           </div>
+          </>
         )}
 
         {overall && (
@@ -148,42 +207,54 @@ export function Scoreboard() {
   )
 }
 
-// Admin section: rename / score / add / remove games for a day
+// Admin: per day → games (rename / remove) → rounds (score / add / remove)
 export function ScoreAdmin({ code }) {
   const [games, reload] = useGames()
   const [day, setDay] = useState(todayTab() === 'Overall' ? 'Day 1' : todayTab())
+  const [names, setNames] = useState({})
   const [edit, setEdit] = useState({})
   const [msg, setMsg] = useState('')
   const list = games.filter((g) => g.day === day)
-  const val = (g, k) => (edit[g.id]?.[k] ?? g[k] ?? '')
-  const set = (g, k, v) => setEdit((e) => ({ ...e, [g.id]: { ...e[g.id], [k]: v } }))
-  const num = (v) => (v === '' || v === null ? null : Number(v))
+  const num = (v) => (v === '' || v === null || v === undefined ? null : Number(v))
+  const rv = (r, k) => edit[r.id]?.[k] ?? r[k] ?? ''
+  const setR = (r, k, v) => setEdit((e) => ({ ...e, [r.id]: { ...e[r.id], [k]: v } }))
+  const run = async (fn, args, ok) => { const { error } = await db.rpc(fn, { p_admin: code, ...args }); if (error) setMsg(error.message); else if (ok) setMsg(ok); reload() }
 
-  const save = async (g) => {
-    const { error } = await db.rpc('admin_save_game', { p_admin: code, p_id: g.id, p_name: val(g, 'name') || g.name, p_s1: num(val(g, 's1')), p_s2: num(val(g, 's2')), p_s3: num(val(g, 's3')), p_s4: num(val(g, 's4')) })
-    if (error) return setMsg(error.message)
-    setEdit((e) => { const n = { ...e }; delete n[g.id]; return n }); setMsg(`Saved “${val(g, 'name') || g.name}” — live now.`); reload()
+  const saveName = (g) => run('admin_rename_game', { p_id: g.id, p_name: names[g.id] ?? g.name }, `Renamed to “${names[g.id] ?? g.name}”.`)
+  const saveRound = async (g, r) => {
+    await run('admin_save_round', { p_id: r.id, p_s1: num(rv(r, 's1')), p_s2: num(rv(r, 's2')), p_s3: num(rv(r, 's3')), p_s4: num(rv(r, 's4')) }, `${g.name} · Round ${r.n} saved — live now.`)
+    setEdit((e) => { const n = { ...e }; delete n[r.id]; return n })
   }
-  const clear = async (g) => { await db.rpc('admin_save_game', { p_admin: code, p_id: g.id, p_name: g.name, p_s1: null, p_s2: null, p_s3: null, p_s4: null }); reload() }
-  const remove = async (g) => { if (!confirm(`Remove “${g.name}” from ${day}?`)) return; await db.rpc('admin_delete_game', { p_admin: code, p_id: g.id }); reload() }
-  const add = async () => { const { error } = await db.rpc('admin_add_game', { p_admin: code, p_day: day, p_name: '' }); if (error) setMsg(error.message); reload() }
+  const delRound = (r) => { if (confirm(`Remove Round ${r.n}?`)) run('admin_delete_round', { p_id: r.id }) }
+  const delGame = (g) => { if (confirm(`Remove “${g.name}” and all its rounds from ${day}?`)) run('admin_delete_game', { p_id: g.id }) }
 
   return (
     <div className="sb-admin">
       <div className="up-days">{SB_DAYS.map(([d]) => <button key={d} type="button" className={day === d ? 'on' : ''} onClick={() => setDay(d)}>{d}</button>)}</div>
-      <div className="sb-admin-head"><span>Game</span>{SB_TEAMS.map((t) => <span key={t.k} style={{ color: t.c }}>{t.ic} {t.name}</span>)}<span /></div>
       {list.map((g) => (
-        <form key={g.id} className={`sb-admin-row ${edit[g.id] ? 'dirty' : ''}`} onSubmit={(e) => { e.preventDefault(); save(g) }}>
-          <input value={val(g, 'name')} onChange={(e) => set(g, 'name', e.target.value)} aria-label="Game name" />
-          {SB_TEAMS.map((t) => <input key={t.k} type="number" inputMode="decimal" value={val(g, t.k)} onChange={(e) => set(g, t.k, e.target.value)} aria-label={`${t.name} score`} placeholder="–" />)}
-          <div className="sb-admin-act">
-            <button type="submit">Save</button>
-            <button type="button" onClick={() => clear(g)}>Clear</button>
-            <button type="button" onClick={() => remove(g)}>✕</button>
+        <div key={g.id} className="sbg">
+          <div className="sbg-head">
+            <input value={names[g.id] ?? g.name} onChange={(e) => setNames((n) => ({ ...n, [g.id]: e.target.value }))} onKeyDown={(e) => e.key === 'Enter' && saveName(g)} aria-label="Game name" />
+            {names[g.id] !== undefined && names[g.id] !== g.name && <button className="sbg-save" onClick={() => saveName(g)}>Save name</button>}
+            <button className="sbg-del" onClick={() => delGame(g)} title="Remove game">✕</button>
           </div>
-        </form>
+          {g.rounds.length > 0 && <div className="sbg-cols"><span>Round</span>{SB_TEAMS.map((t) => <span key={t.k} style={{ color: t.c }}>{t.ic} {t.name}</span>)}<span /></div>}
+          {g.rounds.map((r) => (
+            <form key={r.id} className={`sbg-round ${edit[r.id] ? 'dirty' : ''}`} onSubmit={(e) => { e.preventDefault(); saveRound(g, r) }}>
+              <b>R{r.n}</b>
+              {SB_TEAMS.map((t) => (
+                <input key={t.k} type="number" inputMode="decimal" placeholder={t.name.slice(0, 4) + '…'} value={rv(r, t.k)} onChange={(e) => setR(r, t.k, e.target.value)} aria-label={`${t.name} round ${r.n}`} />
+              ))}
+              <div className="sbg-act"><button type="submit">Save</button><button type="button" onClick={() => delRound(r)}>✕</button></div>
+            </form>
+          ))}
+          <div className="sbg-foot">
+            <button className="sbg-add" onClick={() => run('admin_add_round', { p_game: g.id })}>+ Add round</button>
+            <span>Total: {SB_TEAMS.map((t) => <b key={t.k} style={{ color: t.c }}>{g.tot[t.k]}</b>)}</span>
+          </div>
+        </div>
       ))}
-      <button className="sb-add" onClick={add}>+ Add a game to {day}</button>
+      <button className="sb-add" onClick={() => run('admin_add_game', { p_day: day, p_name: '' })}>+ Add a game to {day}</button>
       {msg && <div className="admin-msg">{msg}</div>}
     </div>
   )

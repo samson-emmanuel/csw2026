@@ -51,7 +51,7 @@ const leaders = [
     quote: [],
   },
   {
-    name: 'Olatunji Adeleye', role: 'Head of Customer Experience and Digital Innovation', org: 'HBM Nigeria',
+    name: 'Olatunji Adeleye', photo: '/leaderships/bosst.webp', role: 'Head of Customer Experience and Digital Innovation', org: 'HBM Nigeria',
     bio: [
       'Welcome to Customer Service Week 2026. I’ve watched this team, all year, quietly go the extra mile: fixing problems before customers even notice them, turning frustration into trust, and building things nobody asked for but everyone now relies on. That is not an accident. It is a habit this team has built together, and this week we celebrate it. As you know, great experiences are designed, not accidental, and they are designed, and better still implemented, by you. Over the next six days we will walk in each other’s shoes, launch our CX Academy, and go head to head in the Customer Delight Challenge. I am asking every one of you to show up fully, not just in dress code, but in spirit, because the best version of this week is the one we build together, and have fun while at it.',
     ],
@@ -329,7 +329,7 @@ function Fun() {
   return (
     <>
       <section className="wrap">
-        <a href="#/teams" className="teams-cta"><span>👥</span><div><b>Which team are you on?</b><small>Trailblazers · Pathfinders · Roadrunners · Milestones</small></div><i>Find my team →</i></a>
+        <a href="#/teams" className="teams-cta"><span>👥</span><div><b>Which team are you on?</b><small>Trailblazers · Pathfinders · Pacesetters · Milestones</small></div><i>Find my team →</i></a>
         <p className="eyebrow">Fun & Engagement</p>
         <h2>Throughout the week</h2>
         <div className="fun">

@@ -1,5 +1,5 @@
 -- Scoreboard — run once in Supabase SQL Editor (after schema.sql).
--- One row per game; s1..s4 = Trailblazers, Pathfinders, Roadrunners, Milestones.
+-- One row per game; s1..s4 = Trailblazers, Pathfinders, Pacesetters, Milestones.
 
 create table if not exists games (
   id uuid primary key default gen_random_uuid(),
