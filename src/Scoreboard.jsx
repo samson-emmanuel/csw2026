@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { db } from './Gratitude.jsx'
+import { unlockAudio, useCountdownSounds } from './sounds.js'
 
 // Columns s1..s4 map to these teams (same colours as The Teams page)
 export const SB_TEAMS = [
@@ -48,30 +49,49 @@ export function useGames() {
 // Shared "team up + 60s timer" state; left = seconds remaining (null when not running)
 export function useLive() {
   const [live, setLive] = useState(null)
+  const [skew, setSkew] = useState(0)
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
     if (!db) return
     const load = () => db.from('live_state').select('*').eq('id', 1).maybeSingle().then(({ data }) => setLive(data))
-    load()
+    // Offset between this device's clock and the server's (device clocks can be off by many seconds)
+    const sync = async () => {
+      const t0 = Date.now()
+      const { data } = await db.rpc('server_now')
+      if (data) setSkew(new Date(data).getTime() - (t0 + Date.now()) / 2)
+    }
+    load(); sync()
+    const s = setInterval(sync, 60000)
     const ch = db.channel('live').on('postgres_changes', { event: '*', schema: 'public', table: 'live_state' }, load).subscribe()
-    const i = setInterval(() => setNow(Date.now()), 250)
-    return () => { db.removeChannel(ch); clearInterval(i) }
+    const i = setInterval(() => setNow(Date.now()), 100)
+    return () => { db.removeChannel(ch); clearInterval(i); clearInterval(s) }
   }, [])
   const team = SB_TEAMS.find((t) => t.k === live?.team) || null
   const total = live?.seconds || 60
-  const left = live?.started_at ? Math.max(0, Math.ceil(total - (now - new Date(live.started_at).getTime()) / 1000)) : null
-  return { team, left, total }
+  const left = live?.started_at ? Math.min(total, Math.max(0, Math.ceil(total - (now + skew - new Date(live.started_at).getTime()) / 1000))) : null
+  const exact = live?.started_at ? Math.max(0, total - (now + skew - new Date(live.started_at).getTime()) / 1000) : null
+  return { team, left, total, exact }
 }
 
 function NowPlaying() {
-  const { team, left, total } = useLive()
+  const { team, left, total, exact } = useLive()
+  // Sound is on by default (viewers can mute); browsers need one tap/click on the page before audio can play
+  const [sound, setSound] = useState(() => { try { return localStorage.getItem('sb-sound') !== '0' } catch { return true } })
+  useEffect(() => {
+    const go = () => unlockAudio()
+    window.addEventListener('pointerdown', go, { once: true }); window.addEventListener('keydown', go, { once: true })
+    return () => { window.removeEventListener('pointerdown', go); window.removeEventListener('keydown', go) }
+  }, [])
+  const ringing = useCountdownSounds(left, sound, exact)
+  const toggle = () => { if (!sound) unlockAudio(); setSound(!sound); try { localStorage.setItem('sb-sound', sound ? '0' : '1') } catch { /* private mode */ } }
   if (!team) return null
   const up = left === 0
   return (
     <div className={`np ${left !== null && left <= 10 && !up ? 'hurry' : ''}`} style={{ '--c': team.c, '--p': left === null ? 100 : (left / total) * 100 }}>
       <div className="np-team"><small>{left === null ? 'Up next' : up ? 'Time’s up' : 'Now playing'}</small><b><i>{team.ic}</i>{team.name}</b></div>
-      <div className="np-clock">{left === null ? <span>Get ready…</span> : up ? <span>⏰ 0</span> : <><b>{left}</b><small>sec</small></>}</div>
+      <div className="np-clock">{left === null ? <span>Get ready…</span> : up ? (ringing ? <span className="bell">🔔</span> : <span>⏰ 0</span>) : <><b>{left}</b><small>sec</small></>}</div>
       <div className="np-bar"><i /></div>
+      <button className="np-sound" onClick={toggle} title={sound ? 'Sound on' : 'Sound off'}>{sound ? '🔊' : '🔇'}</button>
     </div>
   )
 }
@@ -84,7 +104,7 @@ function standings(games) {
   return rows
 }
 
-function todayTab() {
+export function todayTab() {
   const wat = new Date(Date.now() + 3600000).toISOString().slice(0, 10) // date in WAT
   const i = ['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10'].indexOf(wat)
   return i >= 0 ? SB_DAYS[i][0] : Date.now() > EVENT_END ? 'Overall' : 'Day 1'

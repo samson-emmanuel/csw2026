@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import teams from './teams.json'
 import { ScoreAdmin } from './Scoreboard.jsx'
 
 const env = import.meta.env
@@ -29,7 +30,7 @@ function Setup() {
   return <section className="wrap"><div className="gw-empty">The Gratitude Wall isn’t connected yet. Add the Supabase keys to <code>.env</code> and restart the site.</div></section>
 }
 
-function Note({ n, onDelete }) {
+const Note = memo(function Note({ n, onDelete }) {
   const tilt = ((n.id.charCodeAt(0) + n.id.charCodeAt(1)) % 7) - 3
   return (
     <article className={`sticky ${n.color}`} style={{ '--r': `${tilt}deg` }}>
@@ -40,7 +41,7 @@ function Note({ n, onDelete }) {
       {onDelete && <button className="note-del" onClick={() => onDelete(n.id)}>Delete</button>}
     </article>
   )
-}
+})
 
 function useNotes() {
   const [notes, setNotes] = useState([])
@@ -60,42 +61,37 @@ function useNotes() {
 export function Gratitude() {
   const [notes] = useNotes()
   const [names, setNames] = useState([])
-  const [user, setUser] = useState(() => store.get('gw-user'))
+  const [from, setFrom] = useState(() => store.get('gw-from') || store.get('gw-user')?.name || '')
   const [modal, setModal] = useState(null)
   const [q, setQ] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const [form, setForm] = useState({ to: '', message: '', color: 'yellow', anon: false })
+  const [sug, setSug] = useState(false)
 
   useEffect(() => { if (db) db.rpc('staff_names').then(({ data }) => setNames((data || []).map((d) => d.name))) }, [])
+  const allNames = useMemo(() => [...new Set([...teams.flatMap((t) => t.members.map((m) => m.name)), ...names])].sort(), [names])
+  const wall = useMemo(() => {
+    const list = q ? notes.filter((n) => n.to_name.toLowerCase().includes(q.toLowerCase())) : notes
+    return list.length ? <div className="wall">{list.map((n) => <Note key={n.id} n={n} />)}</div>
+      : <div className="gw-empty">{q ? 'No notes for that name yet.' : 'No notes yet — be the first to say thank you!'}</div>
+  }, [notes, q])
   if (!db) return <Setup />
 
-  const open = () => { setErr(''); setModal(user ? 'note' : 'login') }
+  const open = () => { setErr(''); setModal('note') }
   const close = () => { setModal(null); setErr('') }
-
-  const login = async (e) => {
-    e.preventDefault()
-    const f = new FormData(e.target)
-    const email = f.get('email'), code = f.get('code')
-    setBusy(true)
-    const { data, error } = await db.rpc('login', { p_email: email, p_code: code })
-    setBusy(false)
-    if (error || !data) return setErr('Email or passcode is incorrect.')
-    const u = { email, code, name: data }
-    store.set('gw-user', u); setUser(u); setErr(''); setModal('note')
-  }
 
   const post = async (e) => {
     e.preventDefault()
-    if (!names.includes(form.to)) return setErr('Please pick a name from the staff list.')
+    if (form.to.trim().length < 2) return setErr('Please enter your colleague’s name.')
     setBusy(true)
-    const { error } = await db.rpc('post_note', { p_email: user.email, p_code: user.code, p_to: form.to, p_message: form.message, p_color: form.color, p_anon: form.anon })
+    const { error } = await db.rpc('post_note_open', { p_to: form.to.trim(), p_message: form.message, p_color: form.color, p_from: form.anon ? '' : from })
     setBusy(false)
     if (error) return setErr(error.message)
+    store.set('gw-from', from.trim() || null)
     setForm({ to: '', message: '', color: 'yellow', anon: false }); close()
   }
 
-  const shown = q ? notes.filter((n) => n.to_name.toLowerCase().includes(q.toLowerCase())) : notes
 
   return (
     <>
@@ -108,35 +104,35 @@ export function Gratitude() {
       <section className="wrap">
         <div className="gw-bar">
           <input placeholder="Search by name…" value={q} onChange={(e) => setQ(e.target.value)} />
-          <span>{notes.length} notes{user && <> · Signed in as <b>{user.name}</b> <button onClick={() => { store.set('gw-user', null); setUser(null) }}>Sign out</button></>}</span>
+          <span>{notes.length} notes</span>
         </div>
-        {shown.length ? <div className="wall">{shown.map((n) => <Note key={n.id} n={n} />)}</div>
-          : <div className="gw-empty">{q ? 'No notes for that name yet.' : 'No notes yet — be the first to say thank you!'}</div>}
+        {wall}
       </section>
 
       {modal && (
         <div className="gw-modal" onClick={close}>
-          {modal === 'login' ? (
-            <form className="gw-card" onClick={(e) => e.stopPropagation()} onSubmit={login}>
-              <h3>Sign in to post</h3>
-              <p>Use the email and passcode sent to you by the CX team.</p>
-              <input name="email" type="email" placeholder="Email address" required />
-              <input name="code" placeholder="Passcode" required autoComplete="off" />
-              {err && <div className="gw-err">{err}</div>}
-              <button className="btn" disabled={busy}>{busy ? 'Checking…' : 'Continue'}</button>
-            </form>
-          ) : (
+          {(
             <form className={`sticky compose ${form.color}`} onClick={(e) => e.stopPropagation()} onSubmit={post}>
               <span className="pin" />
               <label>To</label>
-              <input className="to" list="gw-names" placeholder="Colleague’s name" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} required />
-              <datalist id="gw-names">{names.map((n) => <option key={n} value={n} />)}</datalist>
+              <input className="to" autoComplete="off" onFocus={() => setSug(true)} onBlur={() => setTimeout(() => setSug(false), 150)} placeholder="Pick or type a colleague’s name" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} required />
+              {sug && (() => {
+                const q = form.to.trim().toLowerCase()
+                const all = allNames
+                const hits = (q ? all.filter((n) => n.toLowerCase().includes(q)) : all)
+                return hits.length > 0 && !(hits.length === 1 && hits[0] === form.to) && (
+                  <ul className="to-sug">
+                    {hits.map((n) => <li key={n}><button type="button" onMouseDown={(e) => { e.preventDefault(); setForm({ ...form, to: n }); setSug(false) }}>{n}</button></li>)}
+                  </ul>
+                )
+              })()}
               <textarea placeholder="Write your appreciation…" maxLength={280} rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required />
               <div className="compose-row">
                 <div className="swatches">{COLORS.map((c) => <button type="button" key={c} className={`sw ${c} ${form.color === c ? 'on' : ''}`} onClick={() => setForm({ ...form, color: c })} aria-label={c} />)}</div>
                 <label className="anon"><input type="checkbox" checked={form.anon} onChange={(e) => setForm({ ...form, anon: e.target.checked })} /> Anonymous</label>
               </div>
-              <small>{form.anon ? '— Anonymous' : `— ${user.name}`} · {280 - form.message.length} left</small>
+              <input className="from" placeholder="Your name (optional)" maxLength={60} value={from} disabled={form.anon} onChange={(e) => setFrom(e.target.value)} />
+              <small>{form.anon || !from.trim() ? '— Anonymous' : `— ${from.trim()}`} · {280 - form.message.length} left</small>
               {err && <div className="gw-err">{err}</div>}
               <button className="btn" disabled={busy}>{busy ? 'Sticking…' : 'Stick it on the wall'}</button>
             </form>

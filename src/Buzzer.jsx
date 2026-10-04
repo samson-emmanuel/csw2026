@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { db, store } from './Gratitude.jsx'
-import { SB_TEAMS, useLive } from './Scoreboard.jsx'
+import { SB_DAYS, SB_TEAMS, todayTab, useGames, useLive } from './Scoreboard.jsx'
+import { useCountdownSounds } from './sounds.js'
 
 const POINTS = 10
 
@@ -11,6 +12,15 @@ export function Buzzer() {
   const [err, setErr] = useState('')
   const [winner, setWinner] = useState(null)
   const { team, left, total } = useLive()
+  // Which game/round the points go to (defaults: today, last game touched, its latest round)
+  const [games, reloadGames] = useGames()
+  const [day, setDay] = useState(todayTab() === 'Overall' ? 'Day 1' : todayTab())
+  const [gameId, setGameId] = useState('')
+  const [roundId, setRoundId] = useState('')
+  const dayGames = games.filter((g) => g.day === day)
+  const game = dayGames.find((g) => g.id === gameId) || dayGames[0]
+  const round = game?.rounds.find((r) => r.id === roundId) || game?.rounds[game.rounds.length - 1]
+  const ringing = useCountdownSounds(left, false) // visuals only — sound plays on the Scoreboard
 
   useEffect(() => {
     if (!db || !code) return
@@ -20,6 +30,14 @@ export function Buzzer() {
     })
   }, [code])
 
+  const addPts = async (k, delta) => {
+    if (!round) { setErr('Pick a game and round first.'); return false }
+    const { error } = await db.rpc('admin_add_points', { p_admin: code, p_round: round.id, p_team: k, p_delta: delta })
+    if (error) { setErr(error.message); return false }
+    setErr(''); reloadGames(); return true
+  }
+  const award = async () => { if (await addPts(team.k, 10)) { setWinner(team); if (left > 0) set(team.k, false) } }
+  const newRound = async () => { await db.rpc('admin_add_round', { p_admin: code, p_game: game.id }); setRoundId(''); reloadGames() }
   const set = async (k, start) => { const { error } = await db.rpc('admin_set_live', { p_admin: code, p_team: k, p_start: start }); if (error) setErr(error.message) }
 
   if (!ok) return (
@@ -40,9 +58,25 @@ export function Buzzer() {
 
   return (
     <section className={`bz ${running && left <= 10 ? 'hurry' : ''}`} style={team ? { '--tc': team.c } : undefined}>
+      <div className="bz-pick">
+        <select value={day} onChange={(e) => { setDay(e.target.value); setGameId(''); setRoundId('') }}>{SB_DAYS.map(([d]) => <option key={d}>{d}</option>)}</select>
+        <select value={game?.id || ''} onChange={(e) => { setGameId(e.target.value); setRoundId('') }}>{dayGames.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
+        <select value={round?.id || ''} onChange={(e) => setRoundId(e.target.value)}>{(game?.rounds || []).map((r) => <option key={r.id} value={r.id}>Round {r.n}</option>)}</select>
+        {game && <button onClick={newRound}>+ Round</button>}
+      </div>
+      {round && (
+        <div className="bz-scores">
+          {SB_TEAMS.map((t) => (
+            <span key={t.k} style={{ '--c': t.c }} className={team?.k === t.k ? 'cur' : ''}>
+              {t.ic} <b>{round[t.k] ?? 0}</b>
+              <button title={`Reset ${t.name} to 0 for Round ${round.n}`} onClick={() => confirm(`Reset ${t.name}'s score for ${game.name} · Round ${round.n} to 0?`) && addPts(t.k, -(Number(round[t.k]) || 0))}>↺</button>
+            </span>
+          ))}
+        </div>
+      )}
       <p className="eyebrow">{team ? <>Up now: <b className="bz-up-team">{team.ic} {team.name}</b></> : '60-Second Challenge'}</p>
       <div className="bz-ring" style={{ '--p': (shown / total) * 100 }}>
-        <div className="bz-time">{timeUp ? <img className="bz-logo" src="/logo.png" alt="Time’s up" /> : <><b>{shown}</b><small>seconds</small></>}</div>
+        <div className="bz-time">{ringing ? <span className="bell">🔔</span> : timeUp ? <img className="bz-logo" src="/logo.png" alt="Time’s up" /> : <><b>{shown}</b><small>seconds</small></>}</div>
       </div>
 
       {!running && !winner && (
@@ -57,7 +91,8 @@ export function Buzzer() {
           </div>
           <div className="bz-ctrl">
             <button className="btn bz-start" disabled={!team} onClick={() => { setWinner(null); set(team.k, true) }}>{timeUp ? '↻ Start again' : '▶ Start 60s'}</button>
-            {timeUp && <button className="btn bz-award" onClick={() => setWinner(team)}>🏆 Award +{POINTS} to {team.name}</button>}
+            {timeUp && <button className="btn bz-award" onClick={award}>🏆 Award +{POINTS} to {team.name}</button>}
+            {team && <button className="btn bz-minus" onClick={() => addPts(team.k, -1)}>−1 {team.name}</button>}
             {team && <button className="bz-stop" onClick={() => set(null, false)}>Clear</button>}
           </div>
         </div>
@@ -67,7 +102,8 @@ export function Buzzer() {
         <div className="bz-teams">
           <p>{team.name} is playing — did they get it?</p>
           <div className="bz-ctrl">
-            <button className="btn bz-award" onClick={() => { setWinner(team); set(team.k, false) }}>🏆 Award +{POINTS}</button>
+            <button className="btn bz-award" onClick={award}>🏆 Award +{POINTS}</button>
+            <button className="btn bz-minus" onClick={() => addPts(team.k, -1)}>−1 point</button>
             <button className="bz-stop" onClick={() => set(team.k, false)}>Stop</button>
           </div>
         </div>

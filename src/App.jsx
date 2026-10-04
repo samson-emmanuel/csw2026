@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { Gratitude, Admin } from './Gratitude.jsx'
 import { Snapshots } from './Snapshots.jsx'
@@ -6,6 +6,7 @@ import { Commitment } from './Commitment.jsx'
 import { Teams } from './Teams.jsx'
 import { Scoreboard } from './Scoreboard.jsx'
 import { Buzzer } from './Buzzer.jsx'
+import { Games } from './Games.jsx'
 
 const days = [
   { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Black and White', img: ['mon-v2'] },
@@ -51,7 +52,7 @@ const leaders = [
     quote: [],
   },
   {
-    name: 'Olatunji Adeleye', photo: '/leaderships/bosst.webp', role: 'Head of Customer Experience and Digital Innovation', org: 'HBM Nigeria',
+    name: 'Olatunji Adeleye', photo: '/leaderships/bosst-hd.webp', role: 'Head of Customer Experience and Digital Innovation', org: 'HBM Nigeria',
     bio: [
       'Welcome to Customer Service Week 2026. I’ve watched this team, all year, quietly go the extra mile: fixing problems before customers even notice them, turning frustration into trust, and building things nobody asked for but everyone now relies on. That is not an accident. It is a habit this team has built together, and this week we celebrate it. As you know, great experiences are designed, not accidental, and they are designed, and better still implemented, by you. Over the next six days we will walk in each other’s shoes, launch our CX Academy, and go head to head in the Customer Delight Challenge. I am asking every one of you to show up fully, not just in dress code, but in spirit, because the best version of this week is the one we build together, and have fun while at it.',
     ],
@@ -119,6 +120,7 @@ const MENU = [
     ['#/week', 'The Road Ahead', 'Daily schedule, dress codes & flag-off'],
     ['#/fun', 'Fun Zone', 'Activities, games & the finale party'],
     ['#/teams', 'The Teams', 'Find your team for the week'],
+    ['#/games', 'Game Rules', 'How each of the 4 games is played'],
     ['#/scoreboard', 'Scoreboard', 'Live game scores & team standings'],
   ]],
   ['#/leaders', 'Leadership'],
@@ -164,14 +166,15 @@ function Home() {
   const [now, setNow] = useState(Date.now())
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(i) }, [])
   const ms = Math.max(0, LAUNCH - now)
-  const live = ms === 0 // countdown finished: the title takes its place
+  // countdown finished: the title takes its place (preview any time with ?live in the URL)
+  const live = ms === 0 || new URLSearchParams(window.location.search).has('live')
   return (
     <>
       <section className="hero">
         <div className="road" />
         <img className="hero-logo" src="/logo.png" alt="The Extra Mile" />
-        <p className="eyebrow">Customer Service Week · Oct 5 – 10, 2026</p>
-        {live ? <h1 className="hero-big">The <em>Extra</em> Mile</h1> : <Countdown ms={ms} />}
+        <p className="eyebrow">{live ? 'Oct 5 – 10, 2026 · Live now' : 'Customer Service Week · Oct 5 – 10, 2026'}</p>
+        {live ? <><h1 className="hero-big">Customer <em>Service</em> Week</h1><p className="hero-sub">The <em>Extra</em> Mile</p></> : <Countdown ms={ms} />}
         <p className="lead">Six days. Six milestones. One commitment — to meet every customer challenge with determination, creativity and teamwork.</p>
         {!live && <h1 className="hero-title">The <em>Extra</em> Mile</h1>}
         <a className="btn" href="#/week">Explore the week</a>
@@ -330,7 +333,7 @@ function Fun() {
     <>
       <section className="wrap">
         <a href="#/teams" className="teams-cta"><span>👥</span><div><b>Which team are you on?</b><small>Trailblazers · Pathfinders · Pacesetters · Milestones</small></div><i>Find my team →</i></a>
-        <p className="eyebrow">Fun & Engagement</p>
+        <p className="eyebrow">Inter-Team Games</p>
         <h2>Throughout the week</h2>
         <div className="fun">
           {fun.map(([t, s], i) => {
@@ -410,8 +413,38 @@ function Photo({ src, cap, i, onOpen }) {
   return (
     <figure className={`shot s${i % 5}`} onClick={onOpen}>
       {err ? <div className="ph">CSW 2025</div> : <img src={gp(src, 700)} alt={cap} loading="lazy" referrerPolicy="no-referrer" onError={() => setErr(true)} />}
-      <figcaption>{cap}</figcaption>
     </figure>
+  )
+}
+
+// Full-screen slideshow through every day's photos (Day 1 → Grand Finale)
+function Slideshow({ data, onClose }) {
+  const slides = useMemo(() => galleryDays.flatMap(([k, d, t]) => (data[k] || []).map((id) => [id, `${d} · ${t}`])), [data])
+  const [i, setI] = useState(0)
+  const [prev, setPrev] = useState(null) // previous slide, kept briefly to animate it out
+  const [playing, setPlaying] = useState(true)
+  const go = useCallback((d) => setI((x) => { setPrev(x); return (x + d + slides.length) % slides.length }), [slides.length])
+  useEffect(() => { if (!playing || !slides.length) return; const t = setTimeout(() => go(1), 4000); return () => clearTimeout(t) }, [i, playing, go, slides.length])
+  useEffect(() => {
+    const k = (e) => { if (e.key === 'Escape') onClose(); if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); if (e.key === ' ') { e.preventDefault(); setPlaying((p) => !p) } }
+    window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k)
+  }, [go, onClose])
+  if (!slides.length) return null
+  const [id, label] = slides[i]
+  return (
+    <div className="slides">
+      {prev !== null && prev !== i && <img key={`out-${slides[prev][0]}`} className={`slide-img out fx${prev % 3}`} src={gp(slides[prev][0], 1920)} alt="" referrerPolicy="no-referrer" />}
+      <div key={`in-${id}`} className={`slide-frame in fx${i % 3}`}><img className="slide-img kb" src={gp(id, 1920)} alt={label} referrerPolicy="no-referrer" /></div>
+      <img className="slide-pre" src={gp(slides[(i + 1) % slides.length][0], 1920)} alt="" referrerPolicy="no-referrer" />
+      <div className="slide-top"><b>{label}</b><span>{i + 1} / {slides.length}</span></div>
+      <div className="slide-bar"><i key={`${i}-${playing}`} className={playing ? 'run' : ''} /></div>
+      <div className="slide-ctrl">
+        <button onClick={() => go(-1)} aria-label="Previous">⏮</button>
+        <button className="pp" onClick={() => setPlaying(!playing)} aria-label={playing ? 'Pause' : 'Play'}>{playing ? '⏸' : '▶'}</button>
+        <button onClick={() => go(1)} aria-label="Next">⏭</button>
+      </div>
+      <button className="lb-close" onClick={onClose} aria-label="Close">✕</button>
+    </div>
   )
 }
 
@@ -420,6 +453,7 @@ function Gallery() {
   const [day, setDay] = useState('day1')
   const [count, setCount] = useState(PAGE)
   const [open, setOpen] = useState(null)
+  const [show, setShow] = useState(false)
   useEffect(() => { fetch('/gallery.json').then((r) => r.json()).then(setData).catch(() => {}) }, [])
   const label = galleryDays.find((g) => g[0] === day)
   const all = (data[day] || []).map((id) => [id, `${label[1]} · ${label[2]}`])
@@ -443,6 +477,8 @@ function Gallery() {
         <p className="lead">Highlights from last year’s Customer Service Week — the moments that paved the road to The Extra Mile.</p>
       </section>
       <section className="wrap">
+        <button className="btn g-play" onClick={() => setShow(true)} disabled={!Object.keys(data).length}>▶ Play slideshow · all days</button>
+        {show && <Slideshow data={data} onClose={() => setShow(false)} />}
         <div className="g-tabs">
           {galleryDays.map(([k, d, t]) => (
             <button key={k} className={day === k ? 'on' : ''} onClick={() => pick(k)}>{d} · {t}</button>
@@ -534,7 +570,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams />, '#/scoreboard': <Scoreboard />, '#/timer': <Buzzer /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams />, '#/scoreboard': <Scoreboard />, '#/timer': <Buzzer />, '#/games': <Games /> })[route] || <Home />}</main>
       {updateReady && <div className="update-bar">✨ The site has been updated <button onClick={() => window.location.reload()}>Refresh</button></div>}
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>

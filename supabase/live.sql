@@ -25,3 +25,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 notify pgrst, 'reload schema';
+
+-- Server clock, so every screen's countdown matches regardless of device clock
+create or replace function server_now() returns timestamptz language sql stable as $$ select now() $$;
+notify pgrst, 'reload schema';
