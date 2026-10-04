@@ -9,7 +9,10 @@ const COLORS = ['yellow', 'pink', 'blue', 'green']
 
 export const store = {
   get: (k) => { try { return JSON.parse(sessionStorage.getItem(k)) } catch { return null } },
-  set: (k, v) => { try { v ? sessionStorage.setItem(k, JSON.stringify(v)) : sessionStorage.removeItem(k) } catch { /* private mode */ } },
+  set: (k, v) => {
+    try { v ? sessionStorage.setItem(k, JSON.stringify(v)) : sessionStorage.removeItem(k) } catch { /* private mode */ }
+    if (k === 'gw-admin') window.dispatchEvent(new Event('gw-admin'))
+  },
 }
 
 // Sends the passcode email via EmailJS (template params: to_name, to_email, passcode, site_url)
@@ -68,6 +71,7 @@ export function Gratitude() {
   const [busy, setBusy] = useState(false)
   const [form, setForm] = useState({ to: '', message: '', color: 'yellow', anon: false })
   const [sug, setSug] = useState(false)
+  const [sent, setSent] = useState(false)
 
   useEffect(() => { if (db) db.rpc('staff_names').then(({ data }) => setNames((data || []).map((d) => d.name))) }, [])
   const allNames = useMemo(() => [...new Set([...teams.flatMap((t) => t.members.map((m) => m.name)), ...names])].sort(), [names])
@@ -90,6 +94,7 @@ export function Gratitude() {
     if (error) return setErr(error.message)
     store.set('gw-from', from.trim() || null)
     setForm({ to: '', message: '', color: 'yellow', anon: false }); close()
+    setSent(true); setTimeout(() => setSent(false), 6000)
   }
 
 
@@ -106,6 +111,7 @@ export function Gratitude() {
           <input placeholder="Search by name…" value={q} onChange={(e) => setQ(e.target.value)} />
           <span>{notes.length} notes</span>
         </div>
+        {sent && <div className="pledge-wait gw-sent"><div>💌 Thank you! Your note will appear on the wall once an admin approves it.</div></div>}
         {wall}
       </section>
 
@@ -131,7 +137,8 @@ export function Gratitude() {
                 <div className="swatches">{COLORS.map((c) => <button type="button" key={c} className={`sw ${c} ${form.color === c ? 'on' : ''}`} onClick={() => setForm({ ...form, color: c })} aria-label={c} />)}</div>
                 <label className="anon"><input type="checkbox" checked={form.anon} onChange={(e) => setForm({ ...form, anon: e.target.checked })} /> Anonymous</label>
               </div>
-              <input className="from" placeholder="Your name (optional)" maxLength={60} value={from} disabled={form.anon} onChange={(e) => setFrom(e.target.value)} />
+              <label>From <i>(optional)</i></label>
+              <input className="from" placeholder="Your name — leave blank to stay anonymous" maxLength={60} value={from} disabled={form.anon} onChange={(e) => setFrom(e.target.value)} />
               <small>{form.anon || !from.trim() ? '— Anonymous' : `— ${from.trim()}`} · {280 - form.message.length} left</small>
               {err && <div className="gw-err">{err}</div>}
               <button className="btn" disabled={busy}>{busy ? 'Sticking…' : 'Stick it on the wall'}</button>
@@ -146,7 +153,12 @@ export function Gratitude() {
 export function Admin() {
   const [code, setCode] = useState(() => store.get('gw-admin'))
   const [staff, setStaff] = useState([])
-  const [notes, reload] = useNotes()
+  const [notes, setNotes] = useState([])
+  const loadNotes = useCallback(async (c) => {
+    const { data } = await db.rpc('admin_list_notes', { p_admin: c })
+    setNotes(data || [])
+  }, [])
+  const reload = () => loadNotes(code)
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -186,9 +198,10 @@ export function Admin() {
   // Keep the approval queues fresh without a refresh
   useEffect(() => {
     if (!db || !code) return
-    const i = setInterval(() => { loadPhotos(code); loadPledges(code) }, 20000)
+    loadNotes(code)
+    const i = setInterval(() => { loadPhotos(code); loadPledges(code); loadNotes(code) }, 20000)
     return () => clearInterval(i)
-  }, [code, loadPhotos, loadPledges])
+  }, [code, loadPhotos, loadPledges, loadNotes])
   if (!db) return <Setup />
 
   const unlock = (e) => { e.preventDefault(); const c = new FormData(e.target).get('admin'); store.set('gw-admin', c); setMsg(''); setCode(c) }
@@ -222,11 +235,14 @@ export function Admin() {
 
   const pendPhotos = photos.filter((p) => !p.approved)
   const pendPledges = pledges.filter((p) => !p.approved)
+  const pendNotes = notes.filter((n) => !n.approved)
+  const shownNotes = qFilter === 'pending' ? pendNotes : notes.filter((n) => n.approved)
+  const setNote = async (id, ok) => { await db.rpc('admin_set_note', { p_admin: code, p_id: id, p_approved: ok }); reload() }
   const shownPhotos = qFilter === 'pending' ? pendPhotos : photos.filter((p) => p.approved)
   const shownPledges = qFilter === 'pending' ? pendPledges : pledges.filter((p) => p.approved)
   const shownStaff = staffQ ? staff.filter((x) => `${x.name} ${x.email}`.toLowerCase().includes(staffQ.toLowerCase())) : staff
   const TABS = [
-    ['approve', '✅', 'Approvals', pendPhotos.length + pendPledges.length],
+    ['approve', '✅', 'Approvals', pendPhotos.length + pendPledges.length + pendNotes.length],
     ['scores', '🏆', 'Scores', 0],
     ['staff', '👥', 'Staff', 0],
     ['notes', '💌', 'Notes', 0],
@@ -243,7 +259,7 @@ export function Admin() {
           <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendPhotos.length ? 'hot' : ''}><b>{pendPhotos.length}</b><span>Photos to review</span></button>
           <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendPledges.length ? 'hot' : ''}><b>{pendPledges.length}</b><span>Pledges to review</span></button>
           <button onClick={() => setTab('staff')}><b>{staff.length}</b><span>Staff registered</span></button>
-          <button onClick={() => setTab('notes')}><b>{notes.length}</b><span>Gratitude notes</span></button>
+          <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendNotes.length ? 'hot' : ''}><b>{pendNotes.length}</b><span>Notes to review</span></button>
         </div>
         <div className="adm-links">
           <a href="#/timer">⏱ Challenge timer</a>
@@ -263,9 +279,26 @@ export function Admin() {
         {tab === 'approve' && (
           <>
             <div className="adm-seg">
-              <button className={qFilter === 'pending' ? 'on' : ''} onClick={() => setQFilter('pending')}>Waiting ({pendPhotos.length + pendPledges.length})</button>
+              <button className={qFilter === 'pending' ? 'on' : ''} onClick={() => setQFilter('pending')}>Waiting ({pendPhotos.length + pendPledges.length + pendNotes.length})</button>
               <button className={qFilter === 'approved' ? 'on' : ''} onClick={() => setQFilter('approved')}>Approved</button>
             </div>
+
+            <section className="adm-card">
+              <h3>Gratitude notes <span>{shownNotes.length}</span></h3>
+              {shownNotes.length ? (
+                <div className="adm-pledges">
+                  {shownNotes.map((n) => (
+                    <div key={n.id} className="adm-pledge adm-note">
+                      <div><b>To {n.to_name}</b><p>“{n.message}”</p><small>— {n.from_name || 'Anonymous'}</small></div>
+                      <div className="adm-act">
+                        <button className={n.approved ? '' : 'yes'} onClick={() => setNote(n.id, !n.approved)}>{n.approved ? 'Hide' : '✓ Approve'}</button>
+                        <button className="no" onClick={() => delNote(n.id)}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="adm-empty">{qFilter === 'pending' ? '🎉 No notes waiting.' : 'No approved notes yet.'}</div>}
+            </section>
 
             <section className="adm-card">
               <h3>Photos <span>{shownPhotos.length}</span></h3>
@@ -367,8 +400,8 @@ export function Admin() {
 
         {tab === 'notes' && (
           <section className="adm-card">
-            <h3>Gratitude notes <span>{notes.length}</span></h3>
-            {notes.length ? <div className="wall">{notes.map((n) => <Note key={n.id} n={n} onDelete={delNote} />)}</div> : <div className="adm-empty">No notes yet.</div>}
+            <h3>Gratitude notes on the wall <span>{notes.filter((n) => n.approved).length}</span></h3>
+            {notes.some((n) => n.approved) ? <div className="wall">{notes.filter((n) => n.approved).map((n) => <Note key={n.id} n={n} onDelete={delNote} />)}</div> : <div className="adm-empty">No approved notes yet.</div>}
           </section>
         )}
       </main>

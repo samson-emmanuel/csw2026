@@ -1017,3 +1017,12 @@ main > .wrap:first-child { padding-top: 56px; }
 @media (max-width: 900px) { .gm-modes { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 480px) { .gm-modes { grid-template-columns: 1fr; } }
 .gm-modes:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, 1fr); }
+.adm-note { background: #fff8db; border-left-color: #ecbc40; } .adm-note small { color: #8a6d00; font-weight: 600; }
+.gw-sent { padding: 0 0 18px; }
+.compose input.from { background: transparent; border: 0; border-bottom: 2px dashed #0002; border-radius: 0; padding: 0 0 4px; font-family: "Caveat", cursive; font-size: 26px; font-weight: 700; color: #111; outline: none; }
+.compose input.from::placeholder { font-size: 18px; color: #0006; }
+.compose input.from:disabled { opacity: .4; }
+.compose label i { font-style: normal; font-weight: 600; letter-spacing: 0; text-transform: none; opacity: .7; }
+.nav-admin > .nav-top { color: #ecbc40 !important; border: 1px solid #ecbc4066; }
+.nav-admin.on > .nav-top, .nav-admin > .nav-top:hover { background: #ecbc401f !important; }
+@media (max-width: 800px) { .nav-admin { background: #ecbc400f; } .nav-admin > .nav-top { border: 0; } }

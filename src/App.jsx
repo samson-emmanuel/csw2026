@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
-import { Gratitude, Admin } from './Gratitude.jsx'
+import { Gratitude, Admin, store } from './Gratitude.jsx'
 import { Snapshots } from './Snapshots.jsx'
 import { Commitment } from './Commitment.jsx'
 import { Teams } from './Teams.jsx'
@@ -135,22 +135,37 @@ const MENU = [
   ]],
 ]
 
+// Extra menu group shown only while an admin is unlocked
+const ADMIN_MENU = ['Admin', [
+  ['#/admin', 'Dashboard', 'Approvals, scores, staff & notes'],
+  ['#/timer', 'Challenge timer', 'Pick the team, start the 60s, award points'],
+  ['#/scoreboard', 'Live scoreboard', 'What everyone sees'],
+  ['#lock', '🔒 Lock admin', 'Sign out of admin on this device'],
+]]
+
 function Nav({ route }) {
   const [open, setOpen] = useState(false)
   const [drop, setDrop] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(() => !!store.get('gw-admin'))
+  useEffect(() => {
+    const f = () => setIsAdmin(!!store.get('gw-admin'))
+    window.addEventListener('gw-admin', f)
+    return () => window.removeEventListener('gw-admin', f)
+  }, [])
+  const menu = isAdmin ? [...MENU, ADMIN_MENU] : MENU
   useEffect(() => { setOpen(false); setDrop(null) }, [route])
   return (
     <header className={`nav ${open ? 'open' : ''}`}>
       <a href="#/" className="logo"><img src="/logo.png" alt="CSW 2026 The Extra Mile" />CSW<span>2026</span></a>
       <button className="burger" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(!open)}><i /><i /><i /></button>
       <nav>
-        {MENU.map(([a, b]) => Array.isArray(b) ? (
-          <div key={a} className={`nav-group ${b.some(([h]) => h === route) ? 'on' : ''} ${drop === a ? 'show' : ''}`}
+        {menu.map(([a, b]) => Array.isArray(b) ? (
+          <div key={a} className={`nav-group ${a === 'Admin' ? 'nav-admin' : ''} ${b.some(([h]) => h === route) ? 'on' : ''} ${drop === a ? 'show' : ''}`}
             onMouseEnter={() => setDrop(a)} onMouseLeave={() => setDrop(null)}>
             <button className="nav-top" aria-expanded={drop === a} onClick={() => setDrop(drop === a ? null : a)}>{a}<i>▾</i></button>
             <div className="nav-drop">
               {b.map(([h, t, d]) => (
-                <a key={h} href={h} className={route === h ? 'on' : ''}><b>{t}</b><small>{d}</small></a>
+                <a key={h} href={h === '#lock' ? '#/' : h} className={route === h ? 'on' : ''} onClick={h === '#lock' ? () => store.set('gw-admin', null) : undefined}><b>{t}</b><small>{d}</small></a>
               ))}
             </div>
           </div>
