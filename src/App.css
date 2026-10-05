@@ -1130,3 +1130,86 @@ main > .wrap:first-child { padding-top: 56px; }
 .sticky.mini h4 { font-size: 15px; } .sticky.mini p { font-size: 11px; line-height: 1.2; } .sticky.mini small { font-size: 8px; }
 .sticky.mini .pin { width: 26px; height: 9px; top: -5px; }
 @media (max-width: 800px) { .wall.wall-mini { columns: 4 75px; column-gap: 6px; } .sticky.mini h4 { font-size: 13px; } .sticky.mini p { font-size: 10.5px; } }
+/* Scoreboard: bigger, higher-contrast text (readable from across a room) */
+.sb-board h3 { color: #ffffffd9; }
+.sb-pos b { color: #fff; }
+.sb-table thead th { color: color-mix(in srgb, var(--c, #555) 80%, #000); background: #f1eee9; }
+.sb-table tr.todo td:first-child { color: #666; }
+.sb-soon { color: #777; font-weight: 700; }
+.sb-table tr.sb-round td { color: #333; }
+.sb-rcount { background: #e6e2dc; color: #333; }
+.sb-day small { color: #555; } .sb-day span { color: #444; } .sb-day b.muted { color: #888; }
+@media (min-width: 1000px) {
+  .sb-board { padding: 30px; gap: 14px; }
+  .sb-board h3 { font-size: 16px; }
+  .sb-row { grid-template-columns: 96px 300px 1fr 96px; padding: 18px 24px; }
+  .sb-pos { font-size: 30px; } .sb-pos b { font-size: 18px; }
+  .sb-team { font-size: 24px; } .sb-team i { width: 44px; height: 44px; font-size: 22px; } .sb-team em { font-size: 12px; }
+  .sb-bar { height: 14px; }
+  .sb-total { font-size: 40px; }
+  .sb-table th, .sb-table td { padding: 16px 20px; }
+  .sb-table thead th { font-size: 16px; }
+  .sb-table tbody td { font-size: 26px; }
+  .sb-table td:first-child { font-size: 20px; }
+  .sb-table tr.sb-round td { font-size: 18px; }
+  .sb-table tfoot td { font-size: 32px; }
+  .sb-soon { font-size: 15px; }
+  .sb-day b { font-size: 20px; } .sb-day span { font-size: 14px; }
+  .np-team b { font-size: 44px; } .np-clock b { font-size: 90px; }
+  .snap-tabs button { font-size: 15px; padding: 12px 20px; }
+}
+/* Scoreboard game table: larger text on all screens */
+.sb-table thead th { font-size: 17px; }
+.sb-table tbody td { font-size: 28px; }
+.sb-table td:first-child { font-size: 22px; }
+.sb-table tr.sb-round td { font-size: 20px; }
+.sb-table tfoot td { font-size: 34px; }
+.sb-soon { font-size: 16px; }
+.sb-rcount { font-size: 13px; }
+@media (min-width: 1000px) {
+  .sb-table th, .sb-table td { padding: 20px 24px; }
+  .sb-table thead th { font-size: 20px; }
+  .sb-table tbody td { font-size: 36px; }
+  .sb-table td:first-child { font-size: 26px; }
+  .sb-table tr.sb-round td { font-size: 24px; }
+  .sb-table tfoot td { font-size: 42px; }
+  .sb-soon { font-size: 18px; }
+}
+@media (max-width: 800px) { .sb-table tbody td { font-size: 22px; } .sb-table td:first-child { font-size: 17px; } .sb-table thead th { font-size: 13px; } .sb-table tfoot td { font-size: 26px; } }
+/* Score table: fixed, aligned columns */
+.sb-table { table-layout: fixed; }
+.sb-table th:first-child, .sb-table td:first-child { width: 30%; }
+.sb-table th, .sb-table td { text-align: center; vertical-align: middle; }
+.sb-table th:first-child, .sb-table td:first-child { text-align: left; }
+.sb-table thead th { white-space: normal; line-height: 1.2; word-break: break-word; }
+.sb-table thead th i { display: block; margin: 0 auto 6px; font-size: 1.3em; }
+.sb-table thead th:first-child i { margin-left: 0; }
+.sb-switch { margin-bottom: 0; }
+/* Score table: fonts reduced by 2px */
+.sb-table thead th { font-size: 15px; } .sb-table tbody td { font-size: 26px; } .sb-table td:first-child { font-size: 20px; }
+.sb-table tr.sb-round td { font-size: 18px; } .sb-table tfoot td { font-size: 32px; } .sb-soon { font-size: 14px; } .sb-rcount { font-size: 11px; }
+@media (min-width: 1000px) {
+  .sb-table thead th { font-size: 18px; } .sb-table tbody td { font-size: 34px; } .sb-table td:first-child { font-size: 24px; }
+  .sb-table tr.sb-round td { font-size: 22px; } .sb-table tfoot td { font-size: 40px; } .sb-soon { font-size: 16px; }
+}
+@media (max-width: 800px) { .sb-table tbody td { font-size: 20px; } .sb-table td:first-child { font-size: 15px; } .sb-table thead th { font-size: 11px; } .sb-table tfoot td { font-size: 24px; } }
+/* Score table: reduced by another 2px */
+.sb-table thead th { font-size: 13px; } .sb-table tbody td { font-size: 24px; } .sb-table td:first-child { font-size: 18px; }
+.sb-table tr.sb-round td { font-size: 16px; } .sb-table tfoot td { font-size: 30px; } .sb-soon { font-size: 12px; } .sb-rcount { font-size: 10px; }
+@media (min-width: 1000px) {
+  .sb-table thead th { font-size: 16px; } .sb-table tbody td { font-size: 32px; } .sb-table td:first-child { font-size: 22px; }
+  .sb-table tr.sb-round td { font-size: 20px; } .sb-table tfoot td { font-size: 38px; } .sb-soon { font-size: 14px; }
+}
+@media (max-width: 800px) { .sb-table tbody td { font-size: 18px; } .sb-table td:first-child { font-size: 13px; } .sb-table thead th { font-size: 10px; } .sb-table tfoot td { font-size: 22px; } }
+/* Score table: reduced by 1px more */
+.sb-table thead th { font-size: 12px; } .sb-table tbody td { font-size: 23px; } .sb-table td:first-child { font-size: 17px; }
+.sb-table tr.sb-round td { font-size: 15px; } .sb-table tfoot td { font-size: 29px; } .sb-soon { font-size: 11px; }
+@media (min-width: 1000px) {
+  .sb-table thead th { font-size: 15px; } .sb-table tbody td { font-size: 31px; } .sb-table td:first-child { font-size: 21px; }
+  .sb-table tr.sb-round td { font-size: 19px; } .sb-table tfoot td { font-size: 37px; } .sb-soon { font-size: 13px; }
+}
+@media (max-width: 800px) { .sb-table tbody td { font-size: 17px; } .sb-table td:first-child { font-size: 12px; } .sb-table thead th { font-size: 9.5px; } .sb-table tfoot td { font-size: 21px; } }
+/* Scoreboard: wider content */
+.wrap.sb-wrap { max-width: 1560px; padding-left: calc(3vw / var(--zh, 1)); padding-right: calc(3vw / var(--zh, 1)); }
+.snap-bar .snap-tabs { max-width: 1560px; padding-left: calc(3vw / var(--zh, 1)); padding-right: calc(3vw / var(--zh, 1)); }
+@media (max-width: 800px) { .wrap.sb-wrap { padding-left: 12px; padding-right: 12px; } }

@@ -115,7 +115,11 @@ export function Scoreboard() {
   const [tab, setTab] = useState(todayTab)
   const [openG, setOpenG] = useState({})
   const [showAll, setShowAll] = useState(() => { try { return localStorage.getItem('sb-all') === '1' } catch { return false } })
-  const toggleAll = () => setShowAll((v) => { try { localStorage.setItem('sb-all', v ? '0' : '1') } catch { /* private mode */ } return !v })
+  const toggleAll = () => setShowAll((v) => {
+    setOpenG({}) // switching either way resets any games opened by tapping
+    try { localStorage.setItem('sb-all', v ? '0' : '1') } catch { /* private mode */ }
+    return !v
+  })
   const [now, setNow] = useState(Date.now())
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 2000); return () => clearInterval(i) }, [])
 
@@ -127,8 +131,6 @@ export function Scoreboard() {
   const max = Math.max(1, ...table.map((r) => r.total))
   const started = table.some((r) => r.total > 0) // no positions until the first points are in
   const crowned = overall && now > EVENT_END && started
-  // Most recently scored game on this tab opens its rounds automatically
-  const latest = list.filter((g) => g.played).sort((a, b) => (a.last < b.last ? 1 : -1))[0]?.id
   const fresh = (g) => g.played && now - new Date(g.last).getTime() < 8000
 
   return (
@@ -179,10 +181,10 @@ export function Scoreboard() {
                 {list.map((g) => {
                   const top = g.played ? Math.max(...SB_TEAMS.map((t) => g.tot[t.k])) : null
                   const multi = g.rounds.length > 1
-                  const open = multi && (showAll || (openG[g.id] ?? g.id === latest))
+                  const open = showAll ? g.rounds.length > 0 : multi && !!openG[g.id]
                   return [
                     <tr key={g.id} className={`${g.played ? '' : 'todo'} ${fresh(g) ? 'flash' : ''} ${multi ? 'has-rounds' : ''}`} onClick={() => multi && !showAll && setOpenG((o) => ({ ...o, [g.id]: !open }))}>
-                      <td>{g.name}{multi && <span className="sb-rcount">{g.rounds.length} rounds {open ? '▴' : '▾'}</span>}</td>
+                      <td>{g.name}{(multi || showAll) && g.rounds.length > 0 && <span className="sb-rcount">{g.rounds.length} round{g.rounds.length === 1 ? '' : 's'}{multi && !showAll ? (open ? ' ▴' : ' ▾') : ''}</span>}</td>
                       {SB_TEAMS.map((t) => (
                         <td key={t.k} className={g.played && g.tot[t.k] === top && top > 0 ? 'win' : ''} style={{ '--c': t.c }}>
                           {g.played ? g.tot[t.k] : <span className="sb-soon">Coming up</span>}
