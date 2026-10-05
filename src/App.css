@@ -1232,3 +1232,9 @@ main > .wrap:first-child { padding-top: 56px; }
 .wall-fit .sticky.mini h4 { font-size: 2.2em; } .wall-fit .sticky.mini p { font-size: 1.5em; line-height: 1.2; } .wall-fit .sticky.mini small { font-size: 1em; }
 .wall-fit .sticky.mini .pin { width: 4.5em; height: 1.4em; top: -0.7em; }
 .wall-fit .gw-empty { font-size: 14px; }
+/* Gratitude wall uses the full screen width */
+.wrap.gw-full { max-width: none; padding-left: 12px; padding-right: 12px; }
+.gw-full .gw-bar { max-width: 1180px; margin-left: auto; margin-right: auto; }
+/* Montserrat everywhere (form controls don’t inherit fonts by default); gratitude notes keep their handwriting font via more specific rules */
+body, button, input, select, textarea, optgroup { font-family: "Montserrat", system-ui, sans-serif; }
+.qr-foot { font-family: "Montserrat", system-ui, sans-serif; font-size: clamp(13px, calc(1.8vh / var(--zh, 1)), 16px); font-weight: 700; }

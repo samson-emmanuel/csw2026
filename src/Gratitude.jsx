@@ -127,7 +127,7 @@ export function Gratitude() {
         <p className="lead">Appreciate a colleague who went the extra mile. Every note lands on the wall for everyone to see.</p>
         <button className="btn" onClick={open}>+ Give Appreciation</button>
       </section>
-      <section className="wrap">
+      <section className="wrap gw-full">
         <div className="gw-bar">
           <input placeholder="Search by name…" value={q} onChange={(e) => setQ(e.target.value)} />
           <span>{notes.length} notes</span>
