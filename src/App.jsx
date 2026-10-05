@@ -128,6 +128,7 @@ const MENU = [
   ['Get Involved', [
     ['#/commitment', 'Commitment Wall', 'Make your Extra Mile pledge'],
     ['#/gratitude', 'Gratitude Wall', 'Say thank you to a colleague'],
+    ['#/qr', 'Scan to Thank', 'QR code that opens the Gratitude Wall'],
     ['#/snapshots', 'Snapshots', 'Share your photos from the week'],
   ]],
   ['CSW 2025', [
