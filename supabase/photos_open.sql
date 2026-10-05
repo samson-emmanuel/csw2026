@@ -1,11 +1,10 @@
  -- Snapshots without sign-in — run once in Supabase SQL Editor (after photos.sql).
 -- Anyone can upload; every photo still waits for admin approval before it shows.
 
--- Valid day and room left (max 1000 photos per day, as a safety cap)
+-- Valid day only — no limit on how many photos can be uploaded
 create or replace function upload_room(p_day text) returns boolean
 language sql security definer set search_path = public as $$
   select p_day in ('Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Finale')
-     and (select count(*) from photos where day = p_day) < 1000
 $$;
 
 -- Called only by the Apps Script (needs the upload secret)

@@ -1,22 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { db, store } from './Gratitude.jsx'
+import { Slideshow } from './Slideshow.jsx'
 
 export const SNAP_DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Finale']
 export const driveImg = (id, w) => `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`
 const UPLOAD_URL = import.meta.env.VITE_UPLOAD_URL
 const PAGE = 12
+const SHOW_SLIDESHOW = false // set to true to show the ▶ Slideshow button
 
-// Resize in the browser (max 1600px, JPEG) so uploads are ~300KB instead of several MB
+// Resize in the browser (max 2560px, high-quality JPEG) so uploads are up to ~1MB instead of several MB
 function shrink(file) {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => {
-      const k = Math.min(1, 1600 / Math.max(img.width, img.height))
+      const k = Math.min(1, 2560 / Math.max(img.width, img.height))
       const c = document.createElement('canvas')
       c.width = Math.round(img.width * k); c.height = Math.round(img.height * k)
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height)
       URL.revokeObjectURL(img.src)
-      resolve(c.toDataURL('image/jpeg', 0.82).split(',')[1])
+      resolve(c.toDataURL('image/jpeg', 0.9).split(',')[1])
     }
     img.onerror = reject
     img.src = URL.createObjectURL(file)
@@ -29,6 +31,13 @@ export function Snapshots() {
   const [counts, setCounts] = useState({})
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
+  const [show, setShow] = useState(null) // slideshow slides when playing
+  const playAll = async () => {
+    const { data } = await db.from('photos').select('drive_id, day, uploader, created_at').order('created_at')
+    const order = (d) => SNAP_DAYS.indexOf(d)
+    const list = (data || []).sort((a, b) => order(a.day) - order(b.day))
+    if (list.length) setShow(list.map((p) => [driveImg(p.drive_id, 1920), `${p.day} · ${p.uploader}`]))
+  }
   const [day, setDay] = useState(SNAP_DAYS[0])
   const [open, setOpen] = useState(null)
   const [name, setName] = useState(() => store.get('snap-name') || store.get('gw-user')?.name || '')
@@ -42,7 +51,7 @@ export function Snapshots() {
 
   const addFiles = (list) => {
     const imgs = [...list].filter((f) => f.type.startsWith('image/'))
-    setPicked((p) => [...p, ...imgs.map((file) => ({ file, url: URL.createObjectURL(file), state: '' }))].slice(0, 20))
+    setPicked((p) => [...p, ...imgs.map((file) => ({ file, url: URL.createObjectURL(file), state: '' }))])
     setErr(''); setStatus('')
   }
   const removeFile = (i) => setPicked((p) => { URL.revokeObjectURL(p[i].url); return p.filter((_, j) => j !== i) })
@@ -112,8 +121,10 @@ export function Snapshots() {
         {db && UPLOAD_URL && <button className="btn" onClick={openUpload}>+ Share Photos</button>}
       </section>
 
+      {show && <Slideshow slides={show} onClose={() => setShow(null)} />}
       <div className="snap-bar">
         <div className="snap-tabs">
+          {SHOW_SLIDESHOW && <button className="snap-play" onClick={playAll}>▶ Slideshow</button>}
           {SNAP_DAYS.map((d) => (
             <button key={d} className={day === d ? 'on' : ''} onClick={() => pick(d)}>
               {d}{counts[d] ? <i>{counts[d]}</i> : null}
@@ -126,8 +137,8 @@ export function Snapshots() {
         {shown.length ? (
           <div className="snap-grid">
             {shown.map((p, i) => (
-              <figure key={p.id} className={`snap-tile ${i === 0 ? 'feature' : ''}`} onClick={() => setOpen(i)} style={{ '--d': `${(i % PAGE) * 40}ms` }}>
-                <img src={driveImg(p.drive_id, i === 0 ? 1200 : 700)} alt={p.caption || p.day} loading="lazy" referrerPolicy="no-referrer" />
+              <figure key={p.id} className="snap-tile" onClick={() => setOpen(i)} style={{ '--d': `${(i % PAGE) * 40}ms` }}>
+                <img src={driveImg(p.drive_id, 800)} alt={p.caption || p.day} loading="lazy" referrerPolicy="no-referrer" />
                 <figcaption>
                   {p.caption && <b>{p.caption}</b>}
                   <span><i className="av">{initials(p.uploader)}</i>{p.uploader}</span>

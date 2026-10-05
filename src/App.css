@@ -1238,3 +1238,13 @@ main > .wrap:first-child { padding-top: 56px; }
 /* Montserrat everywhere (form controls don’t inherit fonts by default); gratitude notes keep their handwriting font via more specific rules */
 body, button, input, select, textarea, optgroup { font-family: "Montserrat", system-ui, sans-serif; }
 .qr-foot { font-family: "Montserrat", system-ui, sans-serif; font-size: clamp(13px, calc(1.8vh / var(--zh, 1)), 16px); font-weight: 700; }
+
+/* Snapshots: uncropped masonry (photos keep their real shape) */
+.snap-grid { display: block; columns: 4 240px; column-gap: 14px; }
+.snap-tile { break-inside: avoid; margin: 0 0 14px; height: auto; border-radius: 16px; box-shadow: 0 10px 24px -14px #0006; }
+.snap-tile.feature { grid-column: auto; grid-row: auto; }
+.snap-tile img { height: auto; display: block; }
+.snap-tile.sk { height: 220px; } .snap-tile.sk:nth-child(3n) { height: 300px; } .snap-tile.sk:nth-child(4n) { height: 170px; }
+.snap-tile figcaption { padding: 40px 14px 12px; }
+.snap-play { background: var(--red) !important; border-color: var(--red) !important; color: #fff !important; }
+@media (max-width: 800px) { .snap-grid { columns: 2 140px; column-gap: 8px; } .snap-tile { margin-bottom: 8px; border-radius: 12px; } }
