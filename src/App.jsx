@@ -541,9 +541,11 @@ function Gallery() {
 }
 
 // Videos: 'yt:<YouTube id>' (loops) or a Google Drive file id (shared "Anyone with the link"); add more as [id, title, subtitle]
+// YouTube (looping) during the event; Google Drive from Sat 10 Oct 2026, 6pm WAT
+const afterEvent = Date.now() > new Date('2026-10-10T18:00:00+01:00').getTime()
 const videos = [
-  ['yt:apjTGvr7Rsc', 'CSW 2025 Recap', 'The full week · Day 1 to the Grand Finale'],
-  ['yt:gTULsvWgiqY', 'Day 2 Highlights', 'CSW 2025 · Denim on Denim'],
+  [afterEvent ? '1-Ntm4s3ALGDT-fSkY7XrImI53O7WXhHL' : 'yt:apjTGvr7Rsc', 'CSW 2025 Recap', 'The full week · Day 1 to the Grand Finale'],
+  [afterEvent ? '1qy5xZqsusnqUD4BM67DNy-IM64Hea7RS' : 'yt:gTULsvWgiqY', 'Day 2 Highlights', 'CSW 2025 · Denim on Denim'],
 ]
 
 function Rewind() {

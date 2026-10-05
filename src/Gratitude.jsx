@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import teams from './teams.json'
 import { ScoreAdmin } from './Scoreboard.jsx'
@@ -73,6 +73,9 @@ export function Gratitude() {
   const [sug, setSug] = useState(false)
   const [sent, setSent] = useState(false)
   const [view, setView] = useState(null) // note opened large
+  // Auto-fit: shrink/grow the cards so every note fits on screen without scrolling
+  const fitRef = useRef(null)
+  const [scale, setScale] = useState(1)
 
   useEffect(() => { if (db) db.rpc('staff_names').then(({ data }) => setNames((data || []).map((d) => d.name))) }, [])
   const allNames = useMemo(() => [...new Set([...teams.flatMap((t) => t.members.map((m) => m.name)), ...names])].sort(), [names])
@@ -80,6 +83,23 @@ export function Gratitude() {
     const list = q ? notes.filter((n) => n.to_name.toLowerCase().includes(q.toLowerCase())) : notes
     return list.length ? <div className="wall wall-mini">{list.map((n) => <Note key={n.id} n={n} onOpen={setView} />)}</div>
       : <div className="gw-empty">{q ? 'No notes for that name yet.' : 'No notes yet — be the first to say thank you!'}</div>
+  }, [notes, q])
+  useLayoutEffect(() => {
+    const el = fitRef.current
+    if (!el) return
+    const fit = () => {
+      const avail = window.innerHeight - el.getBoundingClientRect().top - 12
+      let lo = 0.35, hi = 1.8
+      for (let i = 0; i < 9; i++) { // binary search for the largest scale that still fits
+        const mid = (lo + hi) / 2
+        el.style.setProperty('--s', mid)
+        if (el.scrollHeight <= avail) lo = mid; else hi = mid
+      }
+      el.style.setProperty('--s', lo); setScale(lo)
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    return () => window.removeEventListener('resize', fit)
   }, [notes, q])
   if (!db) return <Setup />
 
@@ -113,7 +133,7 @@ export function Gratitude() {
           <span>{notes.length} notes</span>
         </div>
         {sent && <div className="pledge-wait gw-sent"><div>💌 Thank you! Your note will appear on the wall once an admin approves it.</div></div>}
-        {wall}
+        <div ref={fitRef} className="wall-fit" style={{ '--s': scale }}>{wall}</div>
         {view && <div className="gw-modal" onClick={() => setView(null)}><div onClick={(e) => e.stopPropagation()}><Note n={view} big /></div><button className="lb-close" onClick={() => setView(null)}>✕</button></div>}
       </section>
 

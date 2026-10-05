@@ -1213,3 +1213,22 @@ main > .wrap:first-child { padding-top: 56px; }
 .wrap.sb-wrap { max-width: 1560px; padding-left: calc(3vw / var(--zh, 1)); padding-right: calc(3vw / var(--zh, 1)); }
 .snap-bar .snap-tabs { max-width: 1560px; padding-left: calc(3vw / var(--zh, 1)); padding-right: calc(3vw / var(--zh, 1)); }
 @media (max-width: 800px) { .wrap.sb-wrap { padding-left: 12px; padding-right: 12px; } }
+/* Gratitude cards: extra compact */
+.wall.wall-mini { columns: 12 80px; column-gap: 8px; }
+.sticky.mini { min-height: 60px; padding: 10px 7px 5px; margin-bottom: 10px; }
+.sticky.mini h4 { font-size: 13px; } .sticky.mini p { font-size: 9.5px; line-height: 1.15; } .sticky.mini small { font-size: 7px; }
+.sticky.mini .pin { width: 20px; height: 7px; top: -4px; }
+@media (max-width: 800px) { .wall.wall-mini { columns: 5 62px; column-gap: 5px; } .sticky.mini h4 { font-size: 11.5px; } .sticky.mini p { font-size: 9px; } }
+/* Gratitude cards: smallest */
+.wall.wall-mini { columns: 14 68px; column-gap: 7px; }
+.sticky.mini { min-height: 50px; padding: 8px 6px 4px; margin-bottom: 8px; }
+.sticky.mini h4 { font-size: 11.5px; } .sticky.mini p { font-size: 8.5px; } .sticky.mini small { font-size: 6.5px; }
+.sticky.mini .pin { width: 16px; height: 6px; top: -3px; }
+@media (max-width: 800px) { .wall.wall-mini { columns: 6 52px; column-gap: 4px; } .sticky.mini h4 { font-size: 10px; } .sticky.mini p { font-size: 8px; } }
+/* Gratitude wall auto-fit: card size follows --s so all notes fit the screen */
+.wall-fit { font-size: calc(10px * var(--s, 1)); }
+.wall-fit .wall.wall-mini { columns: auto calc(15em); column-gap: 1.2em; padding: 1em 0.4em 0; }
+.wall-fit .sticky.mini { min-height: 9em; padding: 2em 1.3em 0.9em; margin: 0 0 1.6em; gap: 0.3em; }
+.wall-fit .sticky.mini h4 { font-size: 2.2em; } .wall-fit .sticky.mini p { font-size: 1.5em; line-height: 1.2; } .wall-fit .sticky.mini small { font-size: 1em; }
+.wall-fit .sticky.mini .pin { width: 4.5em; height: 1.4em; top: -0.7em; }
+.wall-fit .gw-empty { font-size: 14px; }
