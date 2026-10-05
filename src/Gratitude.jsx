@@ -33,10 +33,10 @@ function Setup() {
   return <section className="wrap"><div className="gw-empty">The Gratitude Wall isn’t connected yet. Add the Supabase keys to <code>.env</code> and restart the site.</div></section>
 }
 
-const Note = memo(function Note({ n, onDelete }) {
+const Note = memo(function Note({ n, onDelete, onOpen, big }) {
   const tilt = ((n.id.charCodeAt(0) + n.id.charCodeAt(1)) % 7) - 3
   return (
-    <article className={`sticky ${n.color}`} style={{ '--r': `${tilt}deg` }}>
+    <article className={`sticky ${n.color} ${onOpen ? 'mini' : ''} ${big ? 'big' : ''}`} style={{ '--r': `${onOpen ? tilt * 2 : tilt}deg`, '--dx': `${(n.id.charCodeAt(2) % 13) - 6}px`, '--dy': `${(n.id.charCodeAt(3) % 17) - 8}px` }} onClick={onOpen ? () => onOpen(n) : undefined}>
       <span className="pin" />
       <h4>{n.to_name}</h4>
       <p>{n.message}</p>
@@ -72,12 +72,13 @@ export function Gratitude() {
   const [form, setForm] = useState({ to: '', message: '', color: 'yellow', anon: false })
   const [sug, setSug] = useState(false)
   const [sent, setSent] = useState(false)
+  const [view, setView] = useState(null) // note opened large
 
   useEffect(() => { if (db) db.rpc('staff_names').then(({ data }) => setNames((data || []).map((d) => d.name))) }, [])
   const allNames = useMemo(() => [...new Set([...teams.flatMap((t) => t.members.map((m) => m.name)), ...names])].sort(), [names])
   const wall = useMemo(() => {
     const list = q ? notes.filter((n) => n.to_name.toLowerCase().includes(q.toLowerCase())) : notes
-    return list.length ? <div className="wall">{list.map((n) => <Note key={n.id} n={n} />)}</div>
+    return list.length ? <div className="wall wall-mini">{list.map((n) => <Note key={n.id} n={n} onOpen={setView} />)}</div>
       : <div className="gw-empty">{q ? 'No notes for that name yet.' : 'No notes yet — be the first to say thank you!'}</div>
   }, [notes, q])
   if (!db) return <Setup />
@@ -100,7 +101,7 @@ export function Gratitude() {
 
   return (
     <>
-      <section className="hero small">
+      <section className="hero small gw-hero">
         <p className="eyebrow">Gratitude Wall</p>
         <h1>Say <em>Thank You</em></h1>
         <p className="lead">Appreciate a colleague who went the extra mile. Every note lands on the wall for everyone to see.</p>
@@ -113,6 +114,7 @@ export function Gratitude() {
         </div>
         {sent && <div className="pledge-wait gw-sent"><div>💌 Thank you! Your note will appear on the wall once an admin approves it.</div></div>}
         {wall}
+        {view && <div className="gw-modal" onClick={() => setView(null)}><div onClick={(e) => e.stopPropagation()}><Note n={view} big /></div><button className="lb-close" onClick={() => setView(null)}>✕</button></div>}
       </section>
 
       {modal && (

@@ -7,6 +7,7 @@ import { Teams } from './Teams.jsx'
 import { Scoreboard } from './Scoreboard.jsx'
 import { Buzzer } from './Buzzer.jsx'
 import { Games } from './Games.jsx'
+import { QrPoster } from './QrPoster.jsx'
 
 const days = [
   { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Black and White', img: ['mon-v2'] },
@@ -140,6 +141,7 @@ const ADMIN_MENU = ['Admin', [
   ['#/admin', 'Dashboard', 'Approvals, scores, staff & notes'],
   ['#/timer', 'Challenge timer', 'Pick the team, start the 60s, award points'],
   ['#/scoreboard', 'Live scoreboard', 'What everyone sees'],
+  ['#/qr', 'Gratitude QR poster', 'Print or show the scan-to-thank code'],
   ['#lock', '🔒 Lock admin', 'Sign out of admin on this device'],
 ]]
 
@@ -153,9 +155,22 @@ function Nav({ route }) {
     return () => window.removeEventListener('gw-admin', f)
   }, [])
   const menu = isAdmin ? [...MENU, ADMIN_MENU] : MENU
+  // Auto-hide on mouse devices: slides away when the cursor leaves it, returns when the cursor nears the top
+  const [hid, setHid] = useState(false)
+  useEffect(() => {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    let t
+    const move = (e) => {
+      clearTimeout(t)
+      if (e.clientY < 90) setHid(false)
+      else t = setTimeout(() => setHid(true), 1500)
+    }
+    window.addEventListener('mousemove', move)
+    return () => { window.removeEventListener('mousemove', move); clearTimeout(t) }
+  }, [])
   useEffect(() => { setOpen(false); setDrop(null) }, [route])
   return (
-    <header className={`nav ${open ? 'open' : ''}`}>
+    <header className={`nav ${open ? 'open' : ''} ${hid && !open && !drop ? 'hid' : ''}`}>
       <a href="#/" className="logo"><img src="/logo.png" alt="CSW 2026 The Extra Mile" />CSW<span>2026</span></a>
       <button className="burger" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(!open)}><i /><i /><i /></button>
       <nav>
@@ -524,10 +539,10 @@ function Gallery() {
   )
 }
 
-// Videos hosted on Google Drive (shared "Anyone with the link"); add more as [driveId, title, subtitle]
+// Videos: 'yt:<YouTube id>' (loops) or a Google Drive file id (shared "Anyone with the link"); add more as [id, title, subtitle]
 const videos = [
-  ['1-Ntm4s3ALGDT-fSkY7XrImI53O7WXhHL', 'CSW 2025 Recap', 'The full week · Day 1 to the Grand Finale'],
-  ['1qy5xZqsusnqUD4BM67DNy-IM64Hea7RS', 'Day 2 Highlights', 'CSW 2025 · Denim on Denim'],
+  ['yt:apjTGvr7Rsc', 'CSW 2025 Recap', 'The full week · Day 1 to the Grand Finale'],
+  ['yt:gTULsvWgiqY', 'Day 2 Highlights', 'CSW 2025 · Denim on Denim'],
 ]
 
 function Rewind() {
@@ -542,7 +557,10 @@ function Rewind() {
       </section>
       <section className="wrap rewind">
         <div className="player">
-          <iframe src={`https://drive.google.com/file/d/${id}/preview`} title={title} allow="autoplay; fullscreen" allowFullScreen />
+          <iframe key={id} src={id.startsWith('yt:')
+            // YouTube: loops forever; autoplay must start muted (browser rule) — tap the speaker to unmute
+            ? `https://www.youtube.com/embed/${id.slice(3)}?autoplay=1&mute=1&loop=1&playlist=${id.slice(3)}&rel=0&modestbranding=1&playsinline=1`
+            : `https://drive.google.com/file/d/${id}/preview`} title={title} allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
         </div>
         <div className="v-meta"><div><p className="eyebrow">{sub}</p><h2>{title}</h2></div></div>
         {videos.length > 1 && (
@@ -585,7 +603,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams />, '#/scoreboard': <Scoreboard />, '#/timer': <Buzzer />, '#/games': <Games /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams />, '#/scoreboard': <Scoreboard />, '#/timer': <Buzzer />, '#/games': <Games />, '#/qr': <QrPoster /> })[route] || <Home />}</main>
       {updateReady && <div className="update-bar">✨ The site has been updated <button onClick={() => window.location.reload()}>Refresh</button></div>}
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>
