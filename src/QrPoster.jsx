@@ -24,10 +24,6 @@ export function QrPoster() {
         <p className="qr-url">{url.replace(/^https?:\/\//, '')}</p>
         <div className="qr-foot">💌 Gratitude Wall · #TheExtraMile</div>
       </div>
-      <div className="qr-actions">
-        <button className="btn" onClick={() => window.print()}>🖨 Print poster</button>
-        {src && <a className="btn qr-dl" href={src} download="gratitude-wall-qr.png">⬇ Download QR</a>}
-      </div>
     </section>
   )
 }

@@ -1105,3 +1105,28 @@ main > .wrap:first-child { padding-top: 56px; }
 .sticky.mini h4 { font-size: 21px; } .sticky.mini p { font-size: 15px; } .sticky.mini small { font-size: 10px; }
 .sticky.mini .pin { width: 42px; height: 14px; top: -7px; }
 @media (max-width: 800px) { .wall.wall-mini { columns: 3 110px; column-gap: 10px; } .sticky.mini h4 { font-size: 18px; } .sticky.mini p { font-size: 13.5px; } }
+/* QR page: everything fits one screen */
+.qr-page { height: calc(100svh / var(--zh, 1) - 66px); min-height: 0; overflow: hidden; padding: calc(1.6vh / var(--zh, 1)) 16px; gap: calc(1.4vh / var(--zh, 1)); align-content: center; }
+.qr-poster { padding: calc(2.4vh / var(--zh, 1)) 26px calc(2vh / var(--zh, 1)); gap: calc(0.6vh / var(--zh, 1)); width: min(520px, 100%); max-height: 100%; }
+.qr-logo { width: auto; height: calc(7vh / var(--zh, 1)); }
+.qr-poster h1 { font-size: clamp(26px, calc(5.2vh / var(--zh, 1)), 52px); }
+.qr-lead { font-size: clamp(12px, calc(1.8vh / var(--zh, 1)), 16px); margin-bottom: calc(0.6vh / var(--zh, 1)); }
+.qr-eyebrow { font-size: clamp(10px, calc(1.3vh / var(--zh, 1)), 12px); }
+.qr-frame { width: auto; height: min(calc(36vh / var(--zh, 1)), 78vw); padding: calc(1.2vh / var(--zh, 1)); }
+.qr-scan { margin-top: calc(1vh / var(--zh, 1)); font-size: clamp(13px, calc(2vh / var(--zh, 1)), 18px); }
+.qr-url { font-size: clamp(10px, calc(1.4vh / var(--zh, 1)), 13px); }
+.qr-foot { margin-top: calc(0.6vh / var(--zh, 1)); padding: calc(0.6vh / var(--zh, 1)) 14px; font-size: clamp(16px, calc(2.4vh / var(--zh, 1)), 22px); }
+.qr-actions .btn { padding: calc(1.2vh / var(--zh, 1)) 26px; }
+@media (max-width: 800px) { .qr-page { height: calc(100svh - 60px); } }
+/* Gratitude cards: smaller again */
+.wall.wall-mini { columns: 8 115px; column-gap: 12px; }
+.sticky.mini { min-height: 95px; padding: 15px 10px 8px; margin-bottom: 16px; gap: 2px; }
+.sticky.mini h4 { font-size: 18px; } .sticky.mini p { font-size: 13px; line-height: 1.2; } .sticky.mini small { font-size: 9px; }
+.sticky.mini .pin { width: 34px; height: 11px; top: -6px; }
+@media (max-width: 800px) { .wall.wall-mini { columns: 3 95px; column-gap: 8px; } .sticky.mini h4 { font-size: 16px; } .sticky.mini p { font-size: 12px; } }
+/* Gratitude cards: compact */
+.wall.wall-mini { columns: 10 95px; column-gap: 10px; }
+.sticky.mini { min-height: 75px; padding: 12px 8px 6px; margin-bottom: 12px; border-radius: 2px 2px 10px 2px; }
+.sticky.mini h4 { font-size: 15px; } .sticky.mini p { font-size: 11px; line-height: 1.2; } .sticky.mini small { font-size: 8px; }
+.sticky.mini .pin { width: 26px; height: 9px; top: -5px; }
+@media (max-width: 800px) { .wall.wall-mini { columns: 4 75px; column-gap: 6px; } .sticky.mini h4 { font-size: 13px; } .sticky.mini p { font-size: 10.5px; } }
