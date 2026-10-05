@@ -48,46 +48,31 @@ export function PledgeSign({ p, onDelete, onApprove }) {
 
 export function Commitment() {
   const [pledges] = usePledges()
-  const [user, setUser] = useState(() => store.get('gw-user'))
+  // No sign-in: the pledger types their name; this device remembers their own pledge
+  const [name, setName] = useState(() => { try { return localStorage.getItem('cw-name') || store.get('gw-user')?.name || '' } catch { return '' } })
   const [modal, setModal] = useState(null)
   const [text, setText] = useState('')
   const [q, setQ] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
-  const [myP, setMyP] = useState(null) // { pledge, approved } — includes pending
-
-  useEffect(() => {
-    if (db && user) db.rpc('my_pledge', { p_email: user.email, p_code: user.code }).then(({ data }) => setMyP(data?.[0] || null))
-  }, [user])
+  const [myP, setMyP] = useState(() => { try { return JSON.parse(localStorage.getItem('cw-mine')) } catch { return null } })
 
   if (!db) return <section className="wrap"><div className="gw-empty">The Commitment Wall isn’t connected yet.</div></section>
 
-  const live = user && pledges.find((p) => p.name === user.name)
-  const mine = myP && { ...myP, mile: live?.mile }
-  const open = () => { setErr(''); setText(mine ? mine.pledge : ''); setModal(user ? 'pledge' : 'login') }
-
-  const login = async (e) => {
-    e.preventDefault()
-    const f = new FormData(e.target)
-    const email = f.get('email'), code = f.get('code')
-    setBusy(true)
-    const { data, error } = await db.rpc('login', { p_email: email, p_code: code })
-    setBusy(false)
-    if (error || !data) return setErr('Email or passcode is incorrect.')
-    const u = { email, code, name: data }
-    store.set('gw-user', u); setUser(u); setErr('')
-    const { data: mp } = await db.rpc('my_pledge', { p_email: email, p_code: code })
-    setMyP(mp?.[0] || null); setText(mp?.[0]?.pledge || ''); setModal('pledge')
-  }
+  const live = myP && pledges.find((p) => p.name.toLowerCase() === myP.name.toLowerCase())
+  const mine = myP && { ...myP, approved: !!live && live.pledge === myP.pledge, mile: live?.mile }
+  const open = () => { setErr(''); setText(mine ? mine.pledge : ''); setModal('pledge') }
 
   const save = async (e) => {
     e.preventDefault()
+    if (name.trim().length < 2) return setErr('Please enter your name.')
     setBusy(true)
-    const { error } = await db.rpc('save_pledge', { p_email: user.email, p_code: user.code, p_pledge: text })
+    const { error } = await db.rpc('save_pledge_open', { p_name: name.trim(), p_pledge: text })
     setBusy(false)
     if (error) return setErr(error.message)
-    setMyP({ pledge: text.trim(), approved: false })
-    setModal(null)
+    const m = { name: name.trim(), pledge: text.trim() }
+    try { localStorage.setItem('cw-name', m.name); localStorage.setItem('cw-mine', JSON.stringify(m)) } catch { /* private mode */ }
+    setMyP(m); setModal(null)
   }
 
   const shown = q ? pledges.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())) : pledges
@@ -102,12 +87,11 @@ export function Commitment() {
         <button className="btn" onClick={open}>{mine ? '✎ Edit my pledge' : '+ Make my pledge'}</button>
       </section>
       {mine && !mine.approved && (
-        <div className="wrap pledge-wait"><div>⏳ Thanks, {user.name.split(' ')[0]}! Your pledge <b>“{mine.pledge}”</b> is awaiting admin approval and will appear on the wall soon.</div></div>
+        <div className="wrap pledge-wait"><div>⏳ Thanks, {mine?.name.split(' ')[0]}! Your pledge <b>“{mine.pledge}”</b> is awaiting admin approval and will appear on the wall soon.</div></div>
       )}
       <section className="wrap">
         <div className="gw-bar">
           <input placeholder="Find a colleague’s pledge…" value={q} onChange={(e) => setQ(e.target.value)} />
-          {user && <span>Signed in as <b>{user.name}</b> <button onClick={() => { store.set('gw-user', null); setUser(null) }}>Sign out</button></span>}
         </div>
         {shown.length ? <div className="signs">{shown.map((p) => <PledgeSign key={p.id} p={p} />)}</div>
           : <div className="gw-empty">{q ? 'No pledge found for that name.' : 'No pledges yet — be the first to commit!'}</div>}
@@ -115,20 +99,11 @@ export function Commitment() {
 
       {modal && (
         <div className="gw-modal" onClick={() => !busy && setModal(null)}>
-          {modal === 'login' ? (
-            <form className="gw-card" onClick={(e) => e.stopPropagation()} onSubmit={login}>
-              <h3>Sign in to pledge</h3>
-              <p>Use the email and passcode sent to you by the CX team.</p>
-              <input name="email" type="email" placeholder="Email address" required />
-              <input name="code" placeholder="Passcode" required autoComplete="off" />
-              {err && <div className="gw-err">{err}</div>}
-              <button className="btn" disabled={busy}>{busy ? 'Checking…' : 'Continue'}</button>
-            </form>
-          ) : (
+          {(
             <form className="pledge-card" onClick={(e) => e.stopPropagation()} onSubmit={save}>
               <div className="sign-face">
                 <span className="sign-mile">{mine?.mile ? `MILE ${mine.mile}` : 'YOUR PLEDGE'}</span>
-                <h4>{user.name}</h4>
+                <input className="pledge-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="YOUR NAME" maxLength={60} required autoFocus />
                 <p className="pledge-lead">{LEAD}…</p>
                 <textarea value={text} onChange={(e) => setText(e.target.value)} maxLength={200} rows={3} placeholder="…finish the sentence" required />
                 <small>{200 - text.length} characters left{mine?.approved ? ' · editing sends it for approval again' : ''}</small>

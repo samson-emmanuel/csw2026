@@ -1248,3 +1248,22 @@ body, button, input, select, textarea, optgroup { font-family: "Montserrat", sys
 .snap-tile figcaption { padding: 40px 14px 12px; }
 .snap-play { background: var(--red) !important; border-color: var(--red) !important; color: #fff !important; }
 @media (max-width: 800px) { .snap-grid { columns: 2 140px; column-gap: 8px; } .snap-tile { margin-bottom: 8px; border-radius: 12px; } }
+.pledge-name { width: 100%; background: transparent; border: 0; border-bottom: 2px dashed #ffffff66; color: #fff; font: inherit; font-size: 22px; font-weight: 900; text-transform: uppercase; text-align: center; padding: 4px 0 6px; outline: none; }
+.pledge-name::placeholder { color: #ffffff80; }
+
+/* Admin: per-kind approval tabs + bulk approve */
+.adm-tabs { grid-template-columns: repeat(5, 1fr); }
+.adm-tabs button span { font-size: 10.5px; }
+.adm-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.adm-tools .adm-seg { flex: 1 1 260px; max-width: 360px; }
+.adm-bulk { font: inherit; font-size: 14px; font-weight: 800; padding: 12px 18px; border-radius: 14px; border: 0; background: #1f9d55; color: #fff; cursor: pointer; box-shadow: 0 10px 20px -10px #1f9d55; }
+.adm-bulk:hover { background: #17834a; }
+.adm-bulk-msg { width: 100%; font-size: 13px; font-weight: 700; color: #1f7a45; }
+@media (max-width: 800px) {
+  .adm-tools { flex-direction: column; align-items: stretch; }
+  .adm-tools .adm-seg { max-width: none; }
+  .adm-bulk { width: 100%; padding: 14px; }
+  .adm-tabs button { padding: 6px 2px; }
+  .adm-tabs button i { font-size: 19px; }
+  .adm-tabs em { right: calc(50% - 22px); }
+}

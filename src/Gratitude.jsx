@@ -184,7 +184,8 @@ export function Admin() {
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [tab, setTab] = useState('approve')
+  const [tab, setTab] = useState('photos')
+  const [bulkMsg, setBulkMsg] = useState('')
   const [qFilter, setQFilter] = useState('pending')
   const [staffQ, setStaffQ] = useState('')
 
@@ -264,11 +265,30 @@ export function Admin() {
   const shownPledges = qFilter === 'pending' ? pendPledges : pledges.filter((p) => p.approved)
   const shownStaff = staffQ ? staff.filter((x) => `${x.name} ${x.email}`.toLowerCase().includes(staffQ.toLowerCase())) : staff
   const TABS = [
-    ['approve', '✅', 'Approvals', pendPhotos.length + pendPledges.length + pendNotes.length],
+    ['photos', '📸', 'Photos', pendPhotos.length],
+    ['notes', '💌', 'Notes', pendNotes.length],
+    ['pledges', '🛣️', 'Pledges', pendPledges.length],
     ['scores', '🏆', 'Scores', 0],
     ['staff', '👥', 'Staff', 0],
-    ['notes', '💌', 'Notes', 0],
   ]
+  // Approve everything waiting of one kind, in a single call
+  const approveAll = async (kind, n) => {
+    if (!n || !confirm(`Approve all ${n} waiting ${kind}?`)) return
+    const { data, error } = await db.rpc('admin_approve_all', { p_admin: code, p_kind: kind })
+    if (error) return alert(error.message)
+    if (kind === 'photos') loadPhotos(code); else if (kind === 'notes') reload(); else loadPledges(code)
+    setBulkMsg(`✓ Approved ${data} ${kind}.`); setTimeout(() => setBulkMsg(''), 4000)
+  }
+  const seg = (kind, waiting) => (
+    <div className="adm-tools">
+      <div className="adm-seg">
+        <button className={qFilter === 'pending' ? 'on' : ''} onClick={() => setQFilter('pending')}>Waiting ({waiting})</button>
+        <button className={qFilter === 'approved' ? 'on' : ''} onClick={() => setQFilter('approved')}>Approved</button>
+      </div>
+      {qFilter === 'pending' && waiting > 0 && <button className="adm-bulk" onClick={() => approveAll(kind, waiting)}>✓ Approve all ({waiting})</button>}
+      {bulkMsg && <div className="adm-bulk-msg">{bulkMsg}</div>}
+    </div>
+  )
 
   return (
     <div className="adm">
@@ -278,10 +298,10 @@ export function Admin() {
           <button className="adm-lock-btn" onClick={() => { store.set('gw-admin', null); setCode(null) }}>🔒 Lock</button>
         </div>
         <div className="adm-stats">
-          <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendPhotos.length ? 'hot' : ''}><b>{pendPhotos.length}</b><span>Photos to review</span></button>
-          <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendPledges.length ? 'hot' : ''}><b>{pendPledges.length}</b><span>Pledges to review</span></button>
+          <button onClick={() => { setTab('photos'); setQFilter('pending') }} className={pendPhotos.length ? 'hot' : ''}><b>{pendPhotos.length}</b><span>Photos to review</span></button>
+          <button onClick={() => { setTab('pledges'); setQFilter('pending') }} className={pendPledges.length ? 'hot' : ''}><b>{pendPledges.length}</b><span>Pledges to review</span></button>
           <button onClick={() => setTab('staff')}><b>{staff.length}</b><span>Staff registered</span></button>
-          <button onClick={() => { setTab('approve'); setQFilter('pending') }} className={pendNotes.length ? 'hot' : ''}><b>{pendNotes.length}</b><span>Notes to review</span></button>
+          <button onClick={() => { setTab('notes'); setQFilter('pending') }} className={pendNotes.length ? 'hot' : ''}><b>{pendNotes.length}</b><span>Notes to review</span></button>
         </div>
         <div className="adm-links">
           <a href="#/timer">⏱ Challenge timer</a>
@@ -298,30 +318,9 @@ export function Admin() {
       </nav>
 
       <main className="adm-body">
-        {tab === 'approve' && (
+        {tab === 'photos' && (
           <>
-            <div className="adm-seg">
-              <button className={qFilter === 'pending' ? 'on' : ''} onClick={() => setQFilter('pending')}>Waiting ({pendPhotos.length + pendPledges.length + pendNotes.length})</button>
-              <button className={qFilter === 'approved' ? 'on' : ''} onClick={() => setQFilter('approved')}>Approved</button>
-            </div>
-
-            <section className="adm-card">
-              <h3>Gratitude notes <span>{shownNotes.length}</span></h3>
-              {shownNotes.length ? (
-                <div className="adm-pledges">
-                  {shownNotes.map((n) => (
-                    <div key={n.id} className="adm-pledge adm-note">
-                      <div><b>To {n.to_name}</b><p>“{n.message}”</p><small>— {n.from_name || 'Anonymous'}</small></div>
-                      <div className="adm-act">
-                        <button className={n.approved ? '' : 'yes'} onClick={() => setNote(n.id, !n.approved)}>{n.approved ? 'Hide' : '✓ Approve'}</button>
-                        <button className="no" onClick={() => delNote(n.id)}>✕</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : <div className="adm-empty">{qFilter === 'pending' ? '🎉 No notes waiting.' : 'No approved notes yet.'}</div>}
-            </section>
-
+            {seg('photos', pendPhotos.length)}
             <section className="adm-card">
               <h3>Photos <span>{shownPhotos.length}</span></h3>
               {shownPhotos.length ? (
@@ -341,7 +340,34 @@ export function Admin() {
                 </div>
               ) : <div className="adm-empty">{qFilter === 'pending' ? '🎉 No photos waiting.' : 'No approved photos yet.'}</div>}
             </section>
+          </>
+        )}
 
+        {tab === 'notes' && (
+          <>
+            {seg('notes', pendNotes.length)}
+            <section className="adm-card">
+              <h3>Gratitude notes <span>{shownNotes.length}</span></h3>
+              {shownNotes.length ? (
+                <div className="adm-pledges">
+                  {shownNotes.map((n) => (
+                    <div key={n.id} className="adm-pledge adm-note">
+                      <div><b>To {n.to_name}</b><p>“{n.message}”</p><small>— {n.from_name || 'Anonymous'}</small></div>
+                      <div className="adm-act">
+                        <button className={n.approved ? '' : 'yes'} onClick={() => setNote(n.id, !n.approved)}>{n.approved ? 'Hide' : '✓ Approve'}</button>
+                        <button className="no" onClick={() => delNote(n.id)}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="adm-empty">{qFilter === 'pending' ? '🎉 No notes waiting.' : 'No approved notes yet.'}</div>}
+            </section>
+          </>
+        )}
+
+        {tab === 'pledges' && (
+          <>
+            {seg('pledges', pendPledges.length)}
             <section className="adm-card">
               <h3>Pledges <span>{shownPledges.length}</span></h3>
               {shownPledges.length ? (
@@ -420,12 +446,6 @@ export function Admin() {
           </>
         )}
 
-        {tab === 'notes' && (
-          <section className="adm-card">
-            <h3>Gratitude notes on the wall <span>{notes.filter((n) => n.approved).length}</span></h3>
-            {notes.some((n) => n.approved) ? <div className="wall">{notes.filter((n) => n.approved).map((n) => <Note key={n.id} n={n} onDelete={delNote} />)}</div> : <div className="adm-empty">No approved notes yet.</div>}
-          </section>
-        )}
       </main>
     </div>
   )
