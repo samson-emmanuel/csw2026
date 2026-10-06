@@ -113,6 +113,8 @@ export function todayTab() {
 export function Scoreboard() {
   const [games] = useGames()
   const [tab, setTab] = useState(todayTab)
+  const [tabPicked, setTabPicked] = useState(false)
+  useEffect(() => { if (tabPicked) return; const t = setInterval(() => setTab(todayTab()), 30000); return () => clearInterval(t) }, [tabPicked])
   const [openG, setOpenG] = useState({})
   const [showAll, setShowAll] = useState(() => { try { return localStorage.getItem('sb-all') === '1' } catch { return false } })
   const toggleAll = () => setShowAll((v) => {
@@ -143,8 +145,8 @@ export function Scoreboard() {
 
       <div className="snap-bar">
         <div className="snap-tabs">
-          {SB_DAYS.map(([d, l]) => <button key={d} className={tab === d ? 'on' : ''} onClick={() => setTab(d)}>{d}<i>{l.split(' ')[0]}</i></button>)}
-          <button className={`sb-overall ${overall ? 'on' : ''}`} onClick={() => setTab('Overall')}>🏆 Overall</button>
+          {SB_DAYS.map(([d, l]) => <button key={d} className={tab === d ? 'on' : ''} onClick={() => { setTab(d); setTabPicked(true) }}>{d}<i>{l.split(' ')[0]}</i></button>)}
+          <button className={`sb-overall ${overall ? 'on' : ''}`} onClick={() => { setTab('Overall'); setTabPicked(true) }}>🏆 Overall</button>
         </div>
       </div>
 
