@@ -1267,3 +1267,6 @@ body, button, input, select, textarea, optgroup { font-family: "Montserrat", sys
   .adm-tabs button i { font-size: 19px; }
   .adm-tabs em { right: calc(50% - 22px); }
 }
+.sb-table td.sb-edit { cursor: pointer; outline: 1px dashed #0000; transition: .15s; }
+.sb-table td.sb-edit:hover { outline-color: #999; background: #fff7d6; }
+.sb-admin-hint { font-size: 13px; font-weight: 700; color: #7a6400; background: #fff7d6; border: 1px solid #f5b400; border-radius: 12px; padding: 8px 12px; }

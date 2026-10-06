@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { db } from './Gratitude.jsx'
+import { db, store } from './Gratitude.jsx'
 import { unlockAudio, useCountdownSounds } from './sounds.js'
 
 // Columns s1..s4 map to these teams (same colours as The Teams page)
@@ -111,7 +111,23 @@ export function todayTab() {
 }
 
 export function Scoreboard() {
-  const [games] = useGames()
+  const [games, reloadGames] = useGames()
+  // Admins (unlocked on this tab) can tap a score to add or deduct points
+  const [admin, setAdmin] = useState(() => store.get('gw-admin'))
+  useEffect(() => { const f = () => setAdmin(store.get('gw-admin')); window.addEventListener('gw-admin', f); return () => window.removeEventListener('gw-admin', f) }, [])
+  const adjust = async (g, t, r) => {
+    const round = r || g.rounds[g.rounds.length - 1]
+    if (!round) return alert('This game has no rounds yet — add one on the admin page.')
+    const v = prompt(`${t.name} · ${g.name} · Round ${round.n}
+Current: ${round[t.k] ?? 0}
+
+Points to add (use a minus to deduct, e.g. -5):`, '')
+    if (v === null || v.trim() === '') return
+    const d = Number(v)
+    if (Number.isNaN(d)) return alert('Please enter a number, e.g. 10 or -5.')
+    const { error } = await db.rpc('admin_add_points', { p_admin: admin, p_round: round.id, p_team: t.k, p_delta: d })
+    if (error) alert(error.message); else reloadGames()
+  }
   const [tab, setTab] = useState(todayTab)
   const [tabPicked, setTabPicked] = useState(false)
   useEffect(() => { if (tabPicked) return; const t = setInterval(() => setTab(todayTab()), 30000); return () => clearInterval(t) }, [tabPicked])
@@ -173,6 +189,7 @@ export function Scoreboard() {
 
         {!overall && (
           <>
+          {admin && <div className="sb-admin-hint">✏️ Admin: tap any score to add or deduct points (latest round, or tap a round row)</div>}
           <label className="sb-switch"><input type="checkbox" checked={showAll} onChange={toggleAll} /><span />Show all rounds</label>
           <div className="sb-table-wrap">
             <table className="sb-table">
@@ -188,7 +205,7 @@ export function Scoreboard() {
                     <tr key={g.id} className={`${g.played ? '' : 'todo'} ${fresh(g) ? 'flash' : ''} ${multi ? 'has-rounds' : ''}`} onClick={() => multi && !showAll && setOpenG((o) => ({ ...o, [g.id]: !open }))}>
                       <td>{g.name}{(multi || showAll) && g.rounds.length > 0 && <span className="sb-rcount">{g.rounds.length} round{g.rounds.length === 1 ? '' : 's'}{multi && !showAll ? (open ? ' ▴' : ' ▾') : ''}</span>}</td>
                       {SB_TEAMS.map((t) => (
-                        <td key={t.k} className={g.played && g.tot[t.k] === top && top > 0 ? 'win' : ''} style={{ '--c': t.c }}>
+                        <td key={t.k} className={`${g.played && g.tot[t.k] === top && top > 0 ? 'win' : ''} ${admin ? 'sb-edit' : ''}`} style={{ '--c': t.c }} onClick={admin ? (e) => { e.stopPropagation(); adjust(g, t) } : undefined}>
                           {g.played ? g.tot[t.k] : <span className="sb-soon">Coming up</span>}
                         </td>
                       ))}
@@ -196,7 +213,7 @@ export function Scoreboard() {
                     ...(open ? g.rounds.map((r) => (
                       <tr key={r.id} className="sb-round">
                         <td>Round {r.n}</td>
-                        {SB_TEAMS.map((t) => <td key={t.k}>{has(r) ? (r[t.k] ?? 0) : '–'}</td>)}
+                        {SB_TEAMS.map((t) => <td key={t.k} className={admin ? 'sb-edit' : ''} onClick={admin ? () => adjust(g, t, r) : undefined}>{has(r) ? (r[t.k] ?? 0) : '–'}</td>)}
                       </tr>
                     )) : []),
                   ]
