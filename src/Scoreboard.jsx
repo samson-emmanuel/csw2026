@@ -239,7 +239,8 @@ export function ScoreAdmin({ code }) {
   const [edit, setEdit] = useState({})
   const [msg, setMsg] = useState('')
   const list = games.filter((g) => g.day === day)
-  const num = (v) => (v === '' || v === null || v === undefined ? null : Number(v))
+  // Accepts negatives (e.g. -5); anything that isn't a number (like a lone '-') counts as empty
+  const num = (v) => { const n = Number(String(v ?? '').trim()); return String(v ?? '').trim() === '' || Number.isNaN(n) ? null : n }
   const rv = (r, k) => edit[r.id]?.[k] ?? r[k] ?? ''
   const setR = (r, k, v) => setEdit((e) => ({ ...e, [r.id]: { ...e[r.id], [k]: v } }))
   const run = async (fn, args, ok) => { const { error } = await db.rpc(fn, { p_admin: code, ...args }); if (error) setMsg(error.message); else if (ok) setMsg(ok); reload() }
@@ -267,7 +268,7 @@ export function ScoreAdmin({ code }) {
             <form key={r.id} className={`sbg-round ${edit[r.id] ? 'dirty' : ''}`} onSubmit={(e) => { e.preventDefault(); saveRound(g, r) }}>
               <b>R{r.n}</b>
               {SB_TEAMS.map((t) => (
-                <input key={t.k} type="number" inputMode="decimal" placeholder={t.name.slice(0, 4) + '…'} value={rv(r, t.k)} onChange={(e) => setR(r, t.k, e.target.value)} aria-label={`${t.name} round ${r.n}`} />
+                <input key={t.k} type="text" inputMode="text" pattern="-?[0-9]*\.?[0-9]*" placeholder={t.name.slice(0, 4) + '…'} value={rv(r, t.k)} onChange={(e) => setR(r, t.k, e.target.value)} aria-label={`${t.name} round ${r.n}`} />
               ))}
               <div className="sbg-act"><button type="submit">Save</button><button type="button" onClick={() => delRound(r)}>✕</button></div>
             </form>
