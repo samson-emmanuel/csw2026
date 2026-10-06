@@ -6,7 +6,6 @@ export const SNAP_DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Finale']
 export const driveImg = (id, w) => `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`
 const UPLOAD_URL = import.meta.env.VITE_UPLOAD_URL
 const PAGE = 12
-const SHOW_SLIDESHOW = false // set to true to show the ▶ Slideshow button
 
 // Resize in the browser (max 2560px, high-quality JPEG) so uploads are up to ~1MB instead of several MB
 function shrink(file) {
@@ -37,7 +36,15 @@ export function Snapshots() {
     const order = (d) => SNAP_DAYS.indexOf(d)
     const list = (data || []).sort((a, b) => order(a.day) - order(b.day))
     if (list.length) setShow(list.map((p) => [driveImg(p.drive_id, 1920), `${p.day} · ${p.uploader}`]))
+    else { setToast('No approved photos yet.'); setTimeout(() => setToast(''), 3000) }
+    return list.length
   }
+  // While the slideshow is open, pick up newly approved photos every minute (it loops endlessly)
+  useEffect(() => {
+    if (!show) return
+    const t = setInterval(() => { playAll() }, 60000)
+    return () => clearInterval(t)
+  }, [show !== null])
   const [day, setDay] = useState(SNAP_DAYS[0])
   const [open, setOpen] = useState(null)
   const [name, setName] = useState(() => store.get('snap-name') || store.get('gw-user')?.name || '')
@@ -124,7 +131,7 @@ export function Snapshots() {
       {show && <Slideshow slides={show} onClose={() => setShow(null)} />}
       <div className="snap-bar">
         <div className="snap-tabs">
-          {SHOW_SLIDESHOW && <button className="snap-play" onClick={playAll}>▶ Slideshow</button>}
+          <button className="snap-play" onClick={playAll}>▶ Slideshow · all days</button>
           {SNAP_DAYS.map((d) => (
             <button key={d} className={day === d ? 'on' : ''} onClick={() => pick(d)}>
               {d}{counts[d] ? <i>{counts[d]}</i> : null}
