@@ -1270,3 +1270,4 @@ body, button, input, select, textarea, optgroup { font-family: "Montserrat", sys
 .sb-table td.sb-edit { cursor: pointer; outline: 1px dashed #0000; transition: .15s; }
 .sb-table td.sb-edit:hover { outline-color: #999; background: #fff7d6; }
 .sb-admin-hint { font-size: 13px; font-weight: 700; color: #7a6400; background: #fff7d6; border: 1px solid #f5b400; border-radius: 12px; padding: 8px 12px; }
+.adm-day { font: inherit; font-size: 13px; font-weight: 800; padding: 6px 8px; border-radius: 8px; border: 1px solid #ddd; background: #fff; margin-bottom: 2px; width: 100%; }

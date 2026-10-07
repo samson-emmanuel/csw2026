@@ -330,7 +330,12 @@ export function Admin() {
                       <a href={`https://drive.google.com/file/d/${p.drive_id}/view`} target="_blank" rel="noreferrer">
                         <img src={`https://drive.google.com/thumbnail?id=${p.drive_id}&sz=w500`} alt="" loading="lazy" referrerPolicy="no-referrer" />
                       </a>
-                      <figcaption><b>{p.day}</b>{p.uploader}{p.caption && <i>“{p.caption}”</i>}</figcaption>
+                      <figcaption>
+                        <select className="adm-day" value={p.day} onChange={async (e) => { const { error } = await db.rpc('admin_set_photo_day', { p_admin: code, p_id: p.id, p_day: e.target.value }); if (error) alert(error.message); loadPhotos(code) }}>
+                          {['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Finale'].map((d) => <option key={d}>{d}</option>)}
+                        </select>
+                        {p.uploader}{p.caption && <i>“{p.caption}”</i>}
+                      </figcaption>
                       <div className="adm-act">
                         <button className={p.approved ? '' : 'yes'} onClick={() => setPhoto(p.id, !p.approved)}>{p.approved ? 'Hide' : '✓ Approve'}</button>
                         <button className="no" onClick={() => delPhoto(p.id)}>✕</button>

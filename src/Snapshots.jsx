@@ -3,6 +3,12 @@ import { db, store } from './Gratitude.jsx'
 import { Slideshow } from './Slideshow.jsx'
 
 export const SNAP_DAYS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Finale']
+// Today's day during the event (WAT): Mon 5 Oct = Day 1 … Sat 10 Oct = Finale
+export function snapToday() {
+  const wat = new Date(Date.now() + 3600000).toISOString().slice(0, 10)
+  const i = ['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10'].indexOf(wat)
+  return i >= 0 ? SNAP_DAYS[i] : SNAP_DAYS[0]
+}
 export const driveImg = (id, w) => `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`
 const UPLOAD_URL = import.meta.env.VITE_UPLOAD_URL
 const PAGE = 12
@@ -45,7 +51,7 @@ export function Snapshots() {
     const t = setInterval(() => { playAll() }, 60000)
     return () => clearInterval(t)
   }, [show !== null])
-  const [day, setDay] = useState(SNAP_DAYS[0])
+  const [day, setDay] = useState(snapToday)
   const [open, setOpen] = useState(null)
   const [name, setName] = useState(() => store.get('snap-name') || store.get('gw-user')?.name || '')
   const [modal, setModal] = useState(false)
@@ -53,7 +59,7 @@ export function Snapshots() {
   const [status, setStatus] = useState('')
   const [busy, setBusy] = useState(false)
   const [picked, setPicked] = useState([]) // [{ file, url, state: '' | 'up' | 'done' | 'err' }]
-  const [upDay, setUpDay] = useState(SNAP_DAYS[0])
+  const [upDay, setUpDay] = useState(snapToday)
   const [caption, setCaption] = useState('')
 
   const addFiles = (list) => {
@@ -87,7 +93,7 @@ export function Snapshots() {
 
   const shown = items
   const pick = (d) => { if (d !== day) { setItems([]); setDay(d) } setOpen(null) }
-  const openUpload = () => { setModal(true); setErr(''); setStatus(''); setUpDay(day) }
+  const openUpload = () => { setModal(true); setErr(''); setStatus(''); setUpDay(snapToday()) }
   const initials = (n = '') => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 
   const upload = async () => {
@@ -199,7 +205,7 @@ export function Snapshots() {
               <label className="up-label">Your name <i>(optional)</i></label>
               <input className="up-caption up-name" placeholder="e.g. Ada Obi" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
 
-              <label className="up-label">Which day?</label>
+              <label className="up-label">Which day? <i>— uploading to <b>{upDay}</b></i></label>
               <div className="up-days">{SNAP_DAYS.map((d) => <button type="button" key={d} className={upDay === d ? 'on' : ''} onClick={() => setUpDay(d)}>{d}</button>)}</div>
 
               <div className={`up-drop ${picked.length ? 'has' : ''}`} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files) }}>
