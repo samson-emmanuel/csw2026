@@ -9,6 +9,7 @@ import { Buzzer } from './Buzzer.jsx'
 import { Games } from './Games.jsx'
 import { QrPoster } from './QrPoster.jsx'
 import { Slideshow as SlideView } from './Slideshow.jsx'
+import { Judging } from './Judging.jsx'
 
 const days = [
   { d: 'MON', t: 'Step Into Excellence', s: 'Kick-off ceremony + commitment wall', dress: 'Black and White', img: ['mon-v2'] },
@@ -142,6 +143,7 @@ const MENU = [
 const ADMIN_MENU = ['Admin', [
   ['#/admin', 'Dashboard', 'Approvals, scores, staff & notes'],
   ['#/timer', 'Challenge timer', 'Pick the team, start the 60s, award points'],
+  ['#/judging', 'Judging', '3 judges score each team; totals go to the round'],
   ['#/scoreboard', 'Live scoreboard', 'What everyone sees'],
   ['#/qr', 'Gratitude QR poster', 'Print or show the scan-to-thank code'],
   ['#lock', '🔒 Lock admin', 'Sign out of admin on this device'],
@@ -582,7 +584,7 @@ export default function App() {
   return (
     <>
       <Nav route={route} />
-      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams />, '#/scoreboard': <Scoreboard />, '#/timer': <Buzzer />, '#/games': <Games />, '#/qr': <QrPoster /> })[route] || <Home />}</main>
+      <main>{({ '#/week': <Week />, '#/fun': <Fun />, '#/leaders': <Leaders />, '#/gallery': <Gallery />, '#/rewind': <Rewind />, '#/gratitude': <Gratitude />, '#/admin': <Admin />, '#/snapshots': <Snapshots />, '#/commitment': <Commitment />, '#/teams': <Teams />, '#/scoreboard': <Scoreboard />, '#/timer': <Buzzer />, '#/games': <Games />, '#/qr': <QrPoster />, '#/judging': <Judging /> })[route] || <Home />}</main>
       {updateReady && <div className="update-bar">✨ The site has been updated <button onClick={() => window.location.reload()}>Refresh</button></div>}
       <footer>Customer Service Week 2026 — <b>The Extra Mile</b> · #TheExtraMile</footer>
     </>

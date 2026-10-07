@@ -1271,3 +1271,26 @@ body, button, input, select, textarea, optgroup { font-family: "Montserrat", sys
 .sb-table td.sb-edit:hover { outline-color: #999; background: #fff7d6; }
 .sb-admin-hint { font-size: 13px; font-weight: 700; color: #7a6400; background: #fff7d6; border: 1px solid #f5b400; border-radius: 12px; padding: 8px 12px; }
 .adm-day { font: inherit; font-size: 13px; font-weight: 800; padding: 6px 8px; border-radius: 8px; border: 1px solid #ddd; background: #fff; margin-bottom: 2px; width: 100%; }
+/* Admin judging page */
+.jd { display: grid; gap: 16px; padding-top: 32px; }
+.jd-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
+.jd-head h2 { margin: 0; }
+.jd-link { font-weight: 700; font-size: 14px; padding: 9px 14px; border-radius: 30px; background: var(--ink); color: #fff; }
+.jd-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.jd-pick select, .jd-pick button { font: inherit; font-size: 15px; font-weight: 700; padding: 11px 14px; border-radius: 12px; border: 1px solid #ddd; background: #fff; }
+.jd-pick button { cursor: pointer; border-style: dashed; color: var(--red); border-color: var(--red); }
+.jd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.jd-card { background: #fff; border-radius: 18px; padding: 16px; border-top: 6px solid var(--c); display: grid; gap: 10px; box-shadow: 0 8px 20px -14px #0004; }
+.jd-card.ok { box-shadow: 0 0 0 2px #1f9d55, 0 8px 20px -14px #0004; }
+.jd-card h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; color: var(--c); }
+.jd-card h3 i { font-style: normal; }
+.jd-card label { display: grid; grid-template-columns: 1fr 90px; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #555; }
+.jd-card input { width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #ddd; font: inherit; font-size: 18px; font-weight: 800; text-align: center; }
+.jd-total { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--c) 10%, #fff); }
+.jd-total span { font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #666; }
+.jd-total b { font-size: 30px; font-weight: 900; color: var(--c); }
+.jd-card > button { font: inherit; font-weight: 800; padding: 11px; border-radius: 12px; border: 0; background: var(--c); color: #fff; cursor: pointer; }
+.jd-card.ok > button { background: #1f9d55; }
+.jd-all { justify-self: start; border: 0; cursor: pointer; font: inherit; font-weight: 800; }
+@media (max-width: 1000px) { .jd-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .jd-grid { grid-template-columns: 1fr; } .jd-all { justify-self: stretch; } .jd-pick select, .jd-pick button { flex: 1 1 45%; } }
