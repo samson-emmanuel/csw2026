@@ -25,3 +25,22 @@ begin
 end $$;
 
 notify pgrst, 'reload schema';
+
+-- Judge names (shared; editable by admins)
+create or replace function judge_names() returns text
+language sql stable security definer set search_path = public as $$
+  select coalesce((select value from settings where key = 'judge_names'), 'Judge 1|Judge 2|Judge 3')
+$$;
+create or replace function admin_set_judge_names(p_admin text, p_names text) returns void
+language plpgsql security definer set search_path = public, extensions as $$
+begin
+  if not is_admin(p_admin) then raise exception 'Not authorised'; end if;
+  insert into settings values ('judge_names', p_names) on conflict (key) do update set value = excluded.value;
+end $$;
+notify pgrst, 'reload schema';
+
+-- Live updates for the Karaoke board
+do $$ begin
+  alter publication supabase_realtime add table judge_scores;
+exception when duplicate_object then null; end $$;
+notify pgrst, 'reload schema';

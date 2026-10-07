@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { db, store } from './Gratitude.jsx'
 import { SB_DAYS, SB_TEAMS, todayTab, useGames } from './Scoreboard.jsx'
 
-const JUDGES = ['Judge 1', 'Judge 2', 'Judge 3']
 const num = (v) => { const t = String(v ?? '').trim(); const n = Number(t); return t === '' || Number.isNaN(n) ? null : n }
 
 // Admin-only: enter 3 judges' scores per team; the total becomes that team's score for the round
@@ -16,6 +15,9 @@ export function Judging() {
   const [vals, setVals] = useState({}) // { s1: ['', '', ''], ... }
   const [saved, setSaved] = useState({})
   const [msg, setMsg] = useState('')
+  const [judges, setJudges] = useState(['Judge 1', 'Judge 2', 'Judge 3'])
+  const [editNames, setEditNames] = useState(false)
+  useEffect(() => { if (db) db.rpc('judge_names').then(({ data }) => { if (data) setJudges(String(data).split('|')) }) }, [])
 
   useEffect(() => { if (db && code) db.rpc('is_admin', { p_admin: code }).then(({ data }) => setOk(!!data)); else setOk(false) }, [code])
 
@@ -44,6 +46,12 @@ export function Judging() {
     if (error) return setMsg(error.message)
     setSaved((s) => ({ ...s, [t.k]: true })); setMsg(`${t.name}: ${total(t.k) ?? 0} points saved to ${game.name} · Round ${round.n} — live on the Scoreboard.`); reload()
   }
+  const saveNames = async () => {
+    const names = judges.map((n, i) => n.trim() || `Judge ${i + 1}`)
+    const { error } = await db.rpc('admin_set_judge_names', { p_admin: code, p_names: names.join('|') })
+    if (error) return setMsg(error.message)
+    setJudges(names); setEditNames(false); setMsg('Judge names saved.')
+  }
   const saveAll = async () => { for (const t of SB_TEAMS) await save(t) }
   const addRound = async () => { await db.rpc('admin_add_round', { p_admin: code, p_game: game.id }); setRoundId(''); reload() }
 
@@ -58,7 +66,14 @@ export function Judging() {
         <select value={game?.id || ''} onChange={(e) => { setGameId(e.target.value); setRoundId('') }}>{dayGames.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
         <select value={round?.id || ''} onChange={(e) => setRoundId(e.target.value)}>{(game?.rounds || []).map((r) => <option key={r.id} value={r.id}>Round {r.n}</option>)}</select>
         {game && <button onClick={addRound}>+ Add round</button>}
+        <button onClick={() => setEditNames(!editNames)}>✏️ Judge names</button>
       </div>
+      {editNames && (
+        <div className="jd-names">
+          {judges.map((n, i) => <input key={i} value={n} onChange={(e) => setJudges((j) => j.map((x, k) => (k === i ? e.target.value : x)))} placeholder={`Judge ${i + 1}`} maxLength={30} />)}
+          <button onClick={saveNames}>Save names</button>
+        </div>
+      )}
       {!game && <div className="gw-empty">No games on {day}. Add one (e.g. “Karaoke”) in Admin → Scores.</div>}
       {round && (
         <>
@@ -66,7 +81,7 @@ export function Judging() {
             {SB_TEAMS.map((t) => (
               <div key={t.k} className={`jd-card ${saved[t.k] ? 'ok' : ''}`} style={{ '--c': t.c }}>
                 <h3><i>{t.ic}</i>{t.name}</h3>
-                {JUDGES.map((j, i) => (
+                {judges.map((j, i) => (
                   <label key={j}><span>{j}</span>
                     <input type="text" inputMode="text" value={vals[t.k]?.[i] ?? ''} onChange={(e) => set(t.k, i, e.target.value)} placeholder="–" />
                   </label>

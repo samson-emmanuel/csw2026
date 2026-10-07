@@ -1294,3 +1294,79 @@ body, button, input, select, textarea, optgroup { font-family: "Montserrat", sys
 .jd-all { justify-self: start; border: 0; cursor: pointer; font: inherit; font-weight: 800; }
 @media (max-width: 1000px) { .jd-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .jd-grid { grid-template-columns: 1fr; } .jd-all { justify-self: stretch; } .jd-pick select, .jd-pick button { flex: 1 1 45%; } }
+.jd-names { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; border-radius: 14px; background: #fff7d6; border: 1px solid #f5b400; }
+.jd-names input { flex: 1 1 160px; padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; font: inherit; font-weight: 700; }
+.jd-names button { font: inherit; font-weight: 800; padding: 10px 16px; border-radius: 10px; border: 0; background: #1f9d55; color: #fff; cursor: pointer; }
+.jd-card label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Karaoke board */
+.ka-hero { padding-top: 30px; padding-bottom: 26px; }
+.ka { display: grid; gap: 18px; padding-top: 26px; max-width: 1560px; }
+.ka-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ka-rank { display: grid; gap: 6px; padding: 16px; border-radius: 18px; background: #0f0f12; color: #fff; border: 2px solid #ffffff14; text-align: center; }
+.ka-rank.top { background: color-mix(in srgb, var(--c) 30%, #0f0f12); border-color: var(--c); box-shadow: 0 16px 34px -14px var(--c); }
+.ka-medal { font-size: 28px; font-weight: 900; }
+.ka-rank b { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; } .ka-rank i { font-style: normal; }
+.ka-pts { font-size: 40px; font-weight: 900; line-height: 1; } .ka-pts small { font-size: 13px; margin-left: 4px; opacity: .7; }
+.ka-tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.ka-tabs button { font: inherit; font-size: 15px; font-weight: 800; padding: 10px 18px; border-radius: 30px; border: 1px solid #e2dfda; background: #fff; cursor: pointer; }
+.ka-tabs button.on { background: var(--red); border-color: var(--red); color: #fff; }
+.ka-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.ka-card { background: #fff; border-radius: 20px; padding: 18px; border-top: 6px solid var(--c); display: grid; gap: 12px; align-content: start; box-shadow: 0 10px 24px -16px #0005; }
+.ka-card h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 22px; color: var(--c); } .ka-card h3 i { font-style: normal; }
+.ka-round { display: grid; gap: 6px; } .ka-round small { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #888; }
+.ka-judge { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: 12px; background: #faf9f7; }
+.ka-judge span { font-weight: 700; color: #555; font-size: 15px; } .ka-judge b { font-size: 24px; font-weight: 900; }
+.ka-total { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--c) 12%, #fff); }
+.ka-total span { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #555; } .ka-total b { font-size: 32px; font-weight: 900; color: var(--c); }
+.ka-grand { background: var(--c); } .ka-grand span, .ka-grand b { color: #fff; }
+@media (max-width: 1000px) { .ka-board, .ka-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .ka-grid { grid-template-columns: 1fr; } .ka-pts { font-size: 30px; } .ka-rank b { font-size: 16px; } }
+
+/* ===== Karaoke stage theme ===== */
+.ka-stage { position: relative; overflow: hidden; min-height: calc(100vh / var(--zh, 1) - 66px); color: #fff; padding-bottom: 50px;
+  background: radial-gradient(ellipse at 50% -10%, #3b0a5c 0, transparent 55%), radial-gradient(ellipse at 10% 100%, #0b2a6b 0, transparent 50%), radial-gradient(ellipse at 90% 90%, #5c0a2a 0, transparent 45%), #07060d; }
+.ka-lights i { position: absolute; top: -20%; width: 34vw; height: 140%; transform-origin: 50% 0; mix-blend-mode: screen; pointer-events: none; filter: blur(6px);
+  background: linear-gradient(180deg, #ffffff40, transparent 70%); clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%); animation: sweep 7s ease-in-out infinite alternate; }
+.ka-lights i:nth-child(1) { left: 0; background: linear-gradient(180deg, #ff3cac55, transparent 70%); }
+.ka-lights i:nth-child(2) { left: 33%; animation-duration: 9s; animation-delay: -3s; background: linear-gradient(180deg, #ecbc4055, transparent 70%); }
+.ka-lights i:nth-child(3) { right: 0; animation-duration: 8s; animation-delay: -5s; background: linear-gradient(180deg, #2bd2ff55, transparent 70%); }
+@keyframes sweep { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+.ka-notes span { position: absolute; left: var(--x); bottom: -40px; font-size: 26px; color: #ffffff55; text-shadow: 0 0 12px #ff3cac; animation: noteUp 11s linear infinite; animation-delay: var(--d); pointer-events: none; }
+@keyframes noteUp { 0% { transform: translateY(0) rotate(0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-110vh) rotate(40deg); opacity: 0; } }
+.ka-hero2 { position: relative; text-align: center; padding: 34px 16px 10px; display: grid; justify-items: center; gap: 10px; }
+.ka-live { font-size: 12px; font-weight: 800; letter-spacing: 3px; color: #ff5e7e; }
+.ka-neon { margin: 0; font-size: clamp(34px, 6vw, 72px); font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+  color: #fff; text-shadow: 0 0 6px #fff, 0 0 18px #ff3cac, 0 0 40px #ff3cac, 0 0 80px #b517ff; animation: flicker 4s infinite; }
+.ka-neon em { color: #fff7a8; text-shadow: 0 0 6px #fff, 0 0 18px #ecbc40, 0 0 44px #ff9f1c; font-style: normal; }
+@keyframes flicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: .55; } }
+.ka-eq { display: flex; align-items: flex-end; gap: 4px; height: 42px; }
+.ka-eq i { width: 7px; height: 100%; border-radius: 4px; background: linear-gradient(#ff3cac, #2bd2ff); transform-origin: bottom; animation: eq .9s ease-in-out infinite alternate; animation-delay: var(--d); box-shadow: 0 0 8px #ff3cac88; }
+@keyframes eq { 0% { transform: scaleY(.15); } 100% { transform: scaleY(1); } }
+.ka-stage .ka { position: relative; z-index: 1; }
+.ka-stage .ka-rank { background: #ffffff0d; backdrop-filter: blur(6px); border: 2px solid color-mix(in srgb, var(--c) 60%, transparent); box-shadow: 0 0 20px -6px var(--c), inset 0 0 20px -12px var(--c); position: relative; }
+.ka-stage .ka-rank.top { background: color-mix(in srgb, var(--c) 30%, #0b0910); box-shadow: 0 0 36px -4px var(--c); animation: topGlow 2s ease-in-out infinite; }
+@keyframes topGlow { 50% { box-shadow: 0 0 56px 2px var(--c); } }
+.ka-stage .ka-pts { text-shadow: 0 0 14px var(--c); }
+.ka-stage .ka-tabs button { background: #ffffff0f; color: #fff; border-color: #ffffff2a; }
+.ka-stage .ka-tabs button.on { background: linear-gradient(90deg, #ff3cac, #784ba0); border-color: transparent; box-shadow: 0 0 20px #ff3cac88; }
+.ka-stage .ka-card { background: #ffffff0c; backdrop-filter: blur(8px); color: #fff; border: 1px solid #ffffff1a; border-top: 5px solid var(--c); box-shadow: 0 0 26px -12px var(--c); position: relative; }
+.ka-stage .ka-card h3 { color: #fff; text-shadow: 0 0 12px var(--c); }
+.ka-stage .ka-judge { background: #ffffff10; } .ka-stage .ka-judge span { color: #ffffffb3; } .ka-stage .ka-judge b { color: #fff; }
+.ka-stage .ka-round small { color: #ffffff99; }
+.ka-stage .ka-total { background: color-mix(in srgb, var(--c) 28%, transparent); } .ka-stage .ka-total span { color: #ffffffcc; }
+.ka-stage .ka-total b { color: #fff; text-shadow: 0 0 14px var(--c); }
+.ka-stage .ka-grand { background: var(--c); }
+/* Live score change: flash + pop + floating delta */
+.ka-rank.bump, .ka-card.bump { animation: scoreFlash 1.4s ease; }
+@keyframes scoreFlash { 0% { transform: scale(1); } 15% { transform: scale(1.06); box-shadow: 0 0 70px 10px var(--c); } 100% { transform: scale(1); } }
+.ka-rank.bump .ka-pts, .ka-card.bump .ka-total b { animation: popNum .9s cubic-bezier(.2,1.6,.4,1); }
+@keyframes popNum { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.ka-delta { position: absolute; top: -8px; right: 10px; font-size: 26px; font-weight: 900; color: #fff7a8; text-shadow: 0 0 14px #ecbc40; animation: deltaUp 2.2s ease forwards; pointer-events: none; }
+@keyframes deltaUp { 0% { opacity: 0; transform: translateY(14px) scale(.6); } 20% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-40px) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .ka-lights i, .ka-notes span, .ka-eq i, .ka-neon, .ka-rank.top { animation: none !important; } }
+
+/* Karaoke: previous design, full width, scaled as a whole to fit one screen */
+.ka-stage { height: calc(100svh / var(--zh, 1) - 66px); min-height: 0; padding-bottom: 0; }
+.ka-fit { transform-origin: top left; padding-bottom: 20px; }
+.ka-stage .ka { max-width: none; padding-left: 3vw; padding-right: 3vw; }
+@media (max-width: 800px) { .ka-stage { height: calc(100svh - 60px); } }
