@@ -42,7 +42,9 @@ export function Karaoke() {
   const jGames = games.filter((g) => /karaoke/i.test(g.name) || g.rounds.some((r) => judged.includes(r.id)))
   const latestJudged = games.find((g) => g.rounds.some((r) => r.id === judged[0]))
   const game = jGames.find((g) => g.day === todayTab() && /karaoke/i.test(g.name)) || jGames.find((g) => g.day === todayTab()) || latestJudged || jGames[jGames.length - 1]
-  const rounds = game?.rounds || []
+  // Only rounds scored by the judges count here (ignores timer points in the same game)
+  const rounds = (game?.rounds || []).filter((r) => judged.includes(r.id))
+  const ktot = Object.fromEntries(SB_TEAMS.map((t) => [t.k, rounds.reduce((a, r) => a + (Number(r[t.k]) || 0), 0)]))
   const ids = rounds.map((r) => r.id).join(',')
 
   useEffect(() => {
@@ -58,10 +60,10 @@ export function Karaoke() {
   }, [ids])
 
   // Detect score changes per team → flash + floating "+N"
-  const totKey = game ? SB_TEAMS.map((t) => game.tot[t.k]).join('|') : ''
+  const totKey = game ? SB_TEAMS.map((t) => ktot[t.k]).join('|') : ''
   useEffect(() => {
     if (!game) return
-    const now = Object.fromEntries(SB_TEAMS.map((t) => [t.k, game.tot[t.k]]))
+    const now = Object.fromEntries(SB_TEAMS.map((t) => [t.k, ktot[t.k]]))
     const before = prevTot.current
     prevTot.current = now
     if (!before) return
@@ -93,7 +95,7 @@ export function Karaoke() {
   // Latest round that has any score is shown by default
   const scored = rounds.filter((r) => SB_TEAMS.some((t) => r[t.k] !== null))
   const cur = pick === 'all' ? 'all' : rounds.find((r) => r.id === pick) || scored[scored.length - 1] || rounds[0]
-  const board = SB_TEAMS.map((t) => ({ ...t, total: game.tot[t.k] })).sort((a, b) => b.total - a.total)
+  const board = SB_TEAMS.map((t) => ({ ...t, total: ktot[t.k] })).sort((a, b) => b.total - a.total)
   board.forEach((r, i) => { r.pos = i && r.total === board[i - 1].total ? board[i - 1].pos : i })
   const started = board.some((r) => r.total > 0)
   const MEDAL = ['🥇', '🥈', '🥉', '4th']
@@ -144,7 +146,7 @@ export function Karaoke() {
                     </div>
                   )
                 })}
-                {cur === 'all' && <div className="ka-total ka-grand"><span>Karaoke total</span><b><Count value={game.tot[t.k]} /></b></div>}
+                {cur === 'all' && <div className="ka-total ka-grand"><span>Karaoke total</span><b><Count value={ktot[t.k]} /></b></div>}
               </div>
             )
           })}
