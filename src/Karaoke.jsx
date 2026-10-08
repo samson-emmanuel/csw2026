@@ -56,10 +56,6 @@ export function Karaoke() {
   const ids = rounds.map((r) => r.id).join(',')
 
   useEffect(() => {
-    if (!db) return
-    db.rpc('judge_names').then(({ data }) => { if (data) setJudges(String(data).split('|')) })
-  }, [])
-  useEffect(() => {
     if (!db || !ids) return
     const load = () => db.from('judge_scores').select('*').in('round_id', ids.split(',')).then(({ data }) => setScores(data || []))
     load()
@@ -96,6 +92,9 @@ export function Karaoke() {
     window.addEventListener('resize', fit)
     return () => { ro.disconnect(); window.removeEventListener('resize', fit) }
   })
+  // Judge names for the day being shown
+  const nameDay = game?.day
+  useEffect(() => { if (db && nameDay) db.rpc('judge_names_for', { p_day: nameDay }).then(({ data }) => { if (data) setJudges(String(data).split('|')) }) }, [nameDay])
   if (!db) return null
   if (!game) return (
     <section className="wrap"><div className="gw-empty">🎤 Today’s karaoke hasn’t started yet — scores appear here as soon as the judges score the first round.</div></section>

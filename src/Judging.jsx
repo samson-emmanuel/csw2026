@@ -17,7 +17,8 @@ export function Judging() {
   const [msg, setMsg] = useState('')
   const [judges, setJudges] = useState(['Judge 1', 'Judge 2', 'Judge 3'])
   const [editNames, setEditNames] = useState(false)
-  useEffect(() => { if (db) db.rpc('judge_names').then(({ data }) => { if (data) setJudges(String(data).split('|')) }) }, [])
+  // Each day keeps its own judges' names
+  useEffect(() => { if (db) db.rpc('judge_names_for', { p_day: day }).then(({ data }) => { if (data) setJudges(String(data).split('|')) }) }, [day])
 
   useEffect(() => { if (db && code) db.rpc('is_admin', { p_admin: code }).then(({ data }) => setOk(!!data)); else setOk(false) }, [code])
 
@@ -48,9 +49,9 @@ export function Judging() {
   }
   const saveNames = async () => {
     const names = judges.map((n, i) => n.trim() || `Judge ${i + 1}`)
-    const { error } = await db.rpc('admin_set_judge_names', { p_admin: code, p_names: names.join('|') })
+    const { error } = await db.rpc('admin_set_judge_names_day', { p_admin: code, p_day: day, p_names: names.join('|') })
     if (error) return setMsg(error.message)
-    setJudges(names); setEditNames(false); setMsg('Judge names saved.')
+    setJudges(names); setEditNames(false); setMsg(`Judge names saved for ${day}.`)
   }
   const saveAll = async () => { for (const t of SB_TEAMS) await save(t) }
   const addRound = async () => { await db.rpc('admin_add_round', { p_admin: code, p_game: game.id }); setRoundId(''); reload() }
@@ -66,7 +67,7 @@ export function Judging() {
         <select value={game?.id || ''} onChange={(e) => { setGameId(e.target.value); setRoundId('') }}>{dayGames.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
         <select value={round?.id || ''} onChange={(e) => setRoundId(e.target.value)}>{(game?.rounds || []).map((r) => <option key={r.id} value={r.id}>Round {r.n}</option>)}</select>
         {game && <button onClick={addRound}>+ Add round</button>}
-        <button onClick={() => setEditNames(!editNames)}>✏️ Judge names</button>
+        <button onClick={() => setEditNames(!editNames)}>✏️ Judge names ({day})</button>
       </div>
       {editNames && (
         <div className="jd-names">
