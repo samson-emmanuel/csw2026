@@ -1370,3 +1370,8 @@ body, button, input, select, textarea, optgroup { font-family: "Montserrat", sys
 .ka-fit { transform-origin: top left; padding-bottom: 20px; }
 .ka-stage .ka { max-width: none; padding-left: 3vw; padding-right: 3vw; }
 @media (max-width: 800px) { .ka-stage { height: calc(100svh - 60px); } }
+.bz-secs { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 14px; background: #ffffff12; border: 1px solid #ffffff26; color: #fff; font-weight: 700; }
+.bz-secs input { width: 70px; padding: 8px; border-radius: 10px; border: 0; font: inherit; font-size: 16px; font-weight: 800; text-align: center; }
+.bz-secs button { font: inherit; font-size: 13px; font-weight: 800; padding: 8px 10px; border-radius: 10px; border: 1px solid #ffffff33; background: transparent; color: #fff; cursor: pointer; }
+.bz-secs button.on { background: #ecbc40; color: #111; border-color: #ecbc40; }
+.bz-secs .bz-bonus { background: #ecbc40; color: #111; border-color: #ecbc40; }

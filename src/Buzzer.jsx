@@ -11,6 +11,8 @@ export function Buzzer() {
   const [ok, setOk] = useState(false)
   const [err, setErr] = useState('')
   const [winner, setWinner] = useState(null)
+  const [secs, setSecs] = useState(60) // countdown length chosen by the admin
+  const [bonus, setBonus] = useState(20)
   const { team, left, total } = useLive()
   // Which game/round the points go to (defaults: today, last game touched, its latest round)
   const [games, reloadGames] = useGames()
@@ -45,6 +47,13 @@ export function Buzzer() {
   }
   const award = async () => { if (await addPts(team.k, 10)) { setWinner(team); if (left > 0) set(team.k, false) } }
   const newRound = async () => { await db.rpc('admin_add_round', { p_admin: code, p_game: game.id }); setRoundId(''); reloadGames() }
+  const start = async () => {
+    const n = Math.round(Number(secs))
+    if (!n || n < 1) return setErr('Enter how many seconds the timer should run.')
+    const { error } = await db.rpc('admin_start_live', { p_admin: code, p_team: team.k, p_seconds: n })
+    if (error) setErr(error.message); else setErr('')
+  }
+  const addTime = async (n) => { const { error } = await db.rpc('admin_add_time', { p_admin: code, p_seconds: Math.round(Number(n)) || 0 }); if (error) setErr(error.message) }
   const set = async (k, start) => { const { error } = await db.rpc('admin_set_live', { p_admin: code, p_team: k, p_start: start }); if (error) setErr(error.message) }
 
   if (!ok) return (
@@ -97,7 +106,11 @@ export function Buzzer() {
             ))}
           </div>
           <div className="bz-ctrl">
-            <button className="btn bz-start" disabled={!team} onClick={() => { setWinner(null); set(team.k, true) }}>{timeUp ? '↻ Start again' : '▶ Start 60s'}</button>
+            <span className="bz-secs">
+              <input type="number" min="1" max="3600" value={secs} onChange={(e) => setSecs(e.target.value)} aria-label="Timer seconds" />s
+              {[30, 45, 60, 90].map((n) => <button key={n} className={Number(secs) === n ? 'on' : ''} onClick={() => setSecs(n)}>{n}</button>)}
+            </span>
+            <button className="btn bz-start" disabled={!team} onClick={() => { setWinner(null); start() }}>{timeUp ? `↻ Start again (${secs}s)` : `▶ Start ${secs}s`}</button>
             {timeUp && <button className="btn bz-award" onClick={award}>🏆 Award +{POINTS} to {team.name}</button>}
             {team && <button className="btn bz-minus" onClick={() => addPts(team.k, -5)}>−5 {team.name}</button>}
             {team && <button className="bz-stop" onClick={() => set(null, false)}>Clear</button>}
@@ -111,6 +124,10 @@ export function Buzzer() {
           <div className="bz-ctrl">
             <button className="btn bz-award" onClick={award}>🏆 Award +{POINTS}</button>
             <button className="btn bz-minus" onClick={() => addPts(team.k, -5)}>−5 points</button>
+            <span className="bz-secs">
+              <input type="number" value={bonus} onChange={(e) => setBonus(e.target.value)} aria-label="Bonus seconds" />s
+              <button className="bz-bonus" onClick={() => addTime(bonus)}>⏱ Add bonus</button>
+            </span>
             <button className="bz-stop" onClick={() => set(team.k, false)}>Stop</button>
           </div>
         </div>

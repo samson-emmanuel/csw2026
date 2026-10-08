@@ -94,7 +94,13 @@ export function Karaoke() {
   })
   // Judge names for the day being shown
   const nameDay = game?.day || (today === 'Overall' ? null : today)
-  useEffect(() => { if (db && nameDay) db.rpc('judge_names_for', { p_day: nameDay }).then(({ data }) => { if (data) setJudges(String(data).split('|')) }) }, [nameDay])
+  useEffect(() => {
+    if (!db || !nameDay) return
+    const load = () => db.rpc('judge_names_for', { p_day: nameDay }).then(({ data }) => { if (data) setJudges(String(data).split('|')) })
+    load()
+    const t = setInterval(load, 5000) // names edited on the Judging page show here within 5s
+    return () => clearInterval(t)
+  }, [nameDay])
   if (!db) return null
 
   // Latest round that has any score is shown by default
