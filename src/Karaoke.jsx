@@ -93,12 +93,9 @@ export function Karaoke() {
     return () => { ro.disconnect(); window.removeEventListener('resize', fit) }
   })
   // Judge names for the day being shown
-  const nameDay = game?.day
+  const nameDay = game?.day || (today === 'Overall' ? null : today)
   useEffect(() => { if (db && nameDay) db.rpc('judge_names_for', { p_day: nameDay }).then(({ data }) => { if (data) setJudges(String(data).split('|')) }) }, [nameDay])
   if (!db) return null
-  if (!game) return (
-    <section className="wrap"><div className="gw-empty">🎤 Today’s karaoke hasn’t started yet — scores appear here as soon as the judges score the first round.</div></section>
-  )
 
   // Latest round that has any score is shown by default
   const scored = rounds.filter((r) => SB_TEAMS.some((t) => jsum(r.id, t.k) !== null))
@@ -114,9 +111,9 @@ export function Karaoke() {
       <div className="ka-notes" aria-hidden="true">{['♪', '♫', '♬', '♪', '♩', '♫', '♬', '♪'].map((n, i) => <span key={i} style={{ '--x': `${8 + i * 12}%`, '--d': `${i * 1.3}s` }}>{n}</span>)}</div>
       <div className="ka-fit" ref={fitRef}>
       <section className="ka-hero2">
-        <p className="ka-live"><span className="live-dot" /> LIVE · {game.day}</p>
+        <p className="ka-live"><span className="live-dot" /> LIVE · {game?.day || today}</p>
         <h1 className="ka-neon">🎤 Karaoke <em>Showdown</em></h1>
-        {!/karaoke/i.test(game.name) && <p className="ka-live">{game.name}</p>}
+        {game && !/karaoke/i.test(game.name) && <p className="ka-live">{game.name}</p>}
         <div className="ka-eq" aria-hidden="true">{Array.from({ length: 24 }, (_, i) => <i key={i} style={{ '--d': `${(i * 137) % 900}ms` }} />)}</div>
       </section>
       <section className="wrap ka">
@@ -131,14 +128,14 @@ export function Karaoke() {
           ))}
         </div>
 
-        <div className="ka-tabs">
+        {rounds.length > 0 && <div className="ka-tabs">
           {rounds.map((r) => <button key={r.id} className={cur !== 'all' && cur?.id === r.id ? 'on' : ''} onClick={() => setPick(r.id)}>Round {r.n}</button>)}
           <button className={cur === 'all' ? 'on' : ''} onClick={() => setPick('all')}>All rounds</button>
-        </div>
+        </div>}
 
         <div className="ka-grid">
           {SB_TEAMS.map((t) => {
-            const list = cur === 'all' ? rounds : [cur]
+            const list = !rounds.length ? [{ id: 'none', n: 1 }] : cur === 'all' ? rounds : [cur]
             return (
               <div key={`${t.k}-${bumps[t.k]?.n || 0}`} className={`ka-card ${bumps[t.k] ? 'bump' : ''}`} style={{ '--c': t.c }}>
                 <h3><i>{t.ic}</i>{t.name}</h3>
@@ -150,7 +147,7 @@ export function Karaoke() {
                       {judges.map((j, i) => (
                         <div key={j} className="ka-judge"><span>{j}</span><b>{js?.[`j${i + 1}`] ?? '–'}</b></div>
                       ))}
-                      <div className="ka-total"><span>{cur === 'all' ? `Round ${r.n} total` : 'Round total'}</span><b>{jsum(r.id, t.k) === null ? '–' : <Count value={jsum(r.id, t.k)} />}</b></div>
+                      <div className="ka-total"><span>{cur === 'all' ? `Round ${r.n} total` : 'Round total'}</span><b><Count value={jsum(r.id, t.k) ?? 0} /></b></div>
                     </div>
                   )
                 })}
