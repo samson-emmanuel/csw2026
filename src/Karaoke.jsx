@@ -23,7 +23,8 @@ function Count({ value }) {
 
 // Public live Karaoke board: judges' scores per team per round + Karaoke leaderboard
 export function Karaoke() {
-  const [games] = useGames()
+  const [games, reloadGames] = useGames()
+  useEffect(() => { const t = setInterval(reloadGames, 5000); return () => clearInterval(t) }, [reloadGames]) // picks up new rounds even without live updates
   const [judges, setJudges] = useState(['Judge 1', 'Judge 2', 'Judge 3'])
   const [scores, setScores] = useState([])
   const [pick, setPick] = useState(null) // round id, or 'all'
@@ -37,14 +38,21 @@ export function Karaoke() {
     const load = () => db.from('judge_scores').select('round_id, updated_at').order('updated_at', { ascending: false }).then(({ data }) => setJudged((data || []).map((x) => x.round_id)))
     load()
     const ch = db.channel('judged').on('postgres_changes', { event: '*', schema: 'public', table: 'judge_scores' }, load).subscribe()
-    return () => { db.removeChannel(ch) }
+    const poll = setInterval(load, 5000) // backup in case live updates aren't enabled
+    return () => { db.removeChannel(ch); clearInterval(poll) }
   }, [])
   const jGames = games.filter((g) => /karaoke/i.test(g.name) || g.rounds.some((r) => judged.includes(r.id)))
   const latestJudged = games.find((g) => g.rounds.some((r) => r.id === judged[0]))
-  const game = jGames.find((g) => g.day === todayTab() && /karaoke/i.test(g.name)) || jGames.find((g) => g.day === todayTab()) || latestJudged || jGames[jGames.length - 1]
+  // Today's karaoke only (each day starts fresh); after the event, the last one judged
+  const today = todayTab()
+  const game = today === 'Overall'
+    ? latestJudged || jGames[jGames.length - 1]
+    : jGames.find((g) => g.day === today && /karaoke/i.test(g.name) && g.rounds.some((r) => judged.includes(r.id))) || jGames.find((g) => g.day === today && g.rounds.some((r) => judged.includes(r.id)))
   // Only rounds scored by the judges count here (ignores timer points in the same game)
   const rounds = (game?.rounds || []).filter((r) => judged.includes(r.id))
-  const ktot = Object.fromEntries(SB_TEAMS.map((t) => [t.k, rounds.reduce((a, r) => a + (Number(r[t.k]) || 0), 0)]))
+  // Round total = Judge 1 + Judge 2 + Judge 3 only (never the main scoreboard's round score)
+  const jsum = (rid, k) => { const x = scores.find((y) => y.round_id === rid && y.team === k); if (!x || [x.j1, x.j2, x.j3].every((v) => v === null)) return null; return (Number(x.j1) || 0) + (Number(x.j2) || 0) + (Number(x.j3) || 0) }
+  const ktot = Object.fromEntries(SB_TEAMS.map((t) => [t.k, rounds.reduce((a, r) => a + (jsum(r.id, t.k) || 0), 0)]))
   const ids = rounds.map((r) => r.id).join(',')
 
   useEffect(() => {
@@ -56,7 +64,8 @@ export function Karaoke() {
     const load = () => db.from('judge_scores').select('*').in('round_id', ids.split(',')).then(({ data }) => setScores(data || []))
     load()
     const ch = db.channel('judges').on('postgres_changes', { event: '*', schema: 'public', table: 'judge_scores' }, load).subscribe()
-    return () => { db.removeChannel(ch) }
+    const poll = setInterval(load, 5000) // backup in case live updates aren't enabled
+    return () => { db.removeChannel(ch); clearInterval(poll) }
   }, [ids])
 
   // Detect score changes per team → flash + floating "+N"
@@ -89,11 +98,11 @@ export function Karaoke() {
   })
   if (!db) return null
   if (!game) return (
-    <section className="wrap"><div className="gw-empty">🎤 Waiting for the first judges’ scores… (enter them on the Judging page)</div></section>
+    <section className="wrap"><div className="gw-empty">🎤 Today’s karaoke hasn’t started yet — scores appear here as soon as the judges score the first round.</div></section>
   )
 
   // Latest round that has any score is shown by default
-  const scored = rounds.filter((r) => SB_TEAMS.some((t) => r[t.k] !== null))
+  const scored = rounds.filter((r) => SB_TEAMS.some((t) => jsum(r.id, t.k) !== null))
   const cur = pick === 'all' ? 'all' : rounds.find((r) => r.id === pick) || scored[scored.length - 1] || rounds[0]
   const board = SB_TEAMS.map((t) => ({ ...t, total: ktot[t.k] })).sort((a, b) => b.total - a.total)
   board.forEach((r, i) => { r.pos = i && r.total === board[i - 1].total ? board[i - 1].pos : i })
@@ -142,7 +151,7 @@ export function Karaoke() {
                       {judges.map((j, i) => (
                         <div key={j} className="ka-judge"><span>{j}</span><b>{js?.[`j${i + 1}`] ?? '–'}</b></div>
                       ))}
-                      <div className="ka-total"><span>{cur === 'all' ? `Round ${r.n} total` : 'Round total'}</span><b>{r[t.k] === null || r[t.k] === undefined ? '–' : <Count value={r[t.k]} />}</b></div>
+                      <div className="ka-total"><span>{cur === 'all' ? `Round ${r.n} total` : 'Round total'}</span><b>{jsum(r.id, t.k) === null ? '–' : <Count value={jsum(r.id, t.k)} />}</b></div>
                     </div>
                   )
                 })}
